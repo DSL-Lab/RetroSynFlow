@@ -7,7 +7,6 @@ import torch
 from rdkit import Chem
 
 from retflow import config
-from retflow.metrics.topk_accuracy import top_k_accuracy
 from retflow.optimizers.optimizer import Optimizer
 from retflow.problems.problem import Problem
 from retflow.retro_utils import (
@@ -19,6 +18,7 @@ from retflow.retro_utils import (
     predicted_reactants_molecule_graph,
     to_dense,
     build_molecule,
+    top_k_accuracy
 )
 from retflow.runner import DistributedHelper
 
@@ -39,8 +39,6 @@ class Retrosynthesis(Problem):
             self.torch_model = self.method.setup(
                 self.info, self.model, device=config.get_device()
             ).to(config.get_device())
-
-        self.sampling_metrics = self.dataset.get_metrics()
 
         self.model_wrapper = GraphModelWrapper(
             self.torch_model,
@@ -283,8 +281,6 @@ class Retrosynthesis(Problem):
             products_list = products_molecule_graph(data, to_generate)
             ground_truth.extend(true_molecule_list)
 
-            for metric in self.sampling_metrics:
-                metric.update(true_molecule_list, real=False)
 
             for _ in range(examples_per_sample):
                 X, E = self.method.sample(

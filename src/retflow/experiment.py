@@ -53,7 +53,6 @@ class Experiment:
                 train_metrics = self.problem.one_epoch(
                     optimizer,
                     lr_sched,
-                    self.optim.grad_clip,
                     dist_helper=dist_helper,
                 )
                 val_metrics = self.problem.validation(dist_helper)
@@ -143,7 +142,6 @@ class _DistributedExperiment(Experiment):
                 train_metrics = self.problem.one_epoch(
                     optimizer,
                     lr_sched,
-                    self.optim.grad_clip,
                     dist_helper=dist_helper,
                 )
 

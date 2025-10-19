@@ -6,7 +6,6 @@ from rdkit import Chem
 
 
 from retflow import config
-from retflow.metrics.topk_accuracy import top_k_accuracy
 from retflow.retro_utils import (
     PlaceHolder,
     reactants_molecule_graph,
@@ -14,6 +13,7 @@ from retflow.retro_utils import (
     predicted_reactants_molecule_graph,
     to_dense,
     build_molecule,
+    top_k_accuracy
 )
 from retflow.runner import DistributedHelper
 from retflow.problems.retrosynthesis import Retrosynthesis
@@ -256,9 +256,6 @@ class SynthonCompletion(Retrosynthesis):
 
             true_molecule_list = reactants_molecule_graph(data, to_generate)
             ground_truth.extend(true_molecule_list)
-
-            for metric in self.sampling_metrics:
-                metric.update(true_molecule_list, real=False)
 
             if self.use_product_context:
                 context = [synthons.clone(), product.clone()]

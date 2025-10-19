@@ -10,12 +10,7 @@ from torch.utils.data.distributed import DistributedSampler
 
 from retflow import config
 from retflow.datasets.dataset import Dataset
-from retflow.metrics import (
-    SamplingMetric,
-    molecule_metrics,
-    rdkit_metrics,
-    train_metrics,
-)
+
 from retflow.retro_utils import (
     ExtraFeatures,
     GraphDimensions,
@@ -69,31 +64,6 @@ class RetroDataset(Dataset):
         test_loader = DataLoader(eval_dataset, batch_size=self.batch_size)
         return test_loader, self.info
 
-    def get_metrics(self) -> List[SamplingMetric]:
-        kl_n_nodes = molecule_metrics.NDistributionKL(
-            self.info.max_n_nodes,
-            real_dist=self.info.n_nodes_dist,
-            device=config.get_device(),
-        )
-        kl_nodes = molecule_metrics.NodesDistributionKL(
-            num_atom_types=len(RetrosynthesisInfo.atom_decoder),
-            real_dist=self.info.node_types_dist,
-            device=config.get_device(),
-        )
-        kl_edge = molecule_metrics.EdgeDistributionKL(
-            num_edge_types=len(RetrosynthesisInfo.bonds) + 1,
-            real_dist=self.info.edge_types_dist,
-            device=config.get_device(),
-        )
-        kl_valency = molecule_metrics.ValencyDistributionKL(
-            self.info.max_n_nodes,
-            real_dist=self.info.valency_dist,
-            device=config.get_device(),
-        )
-        rdkit_mol_metrics = rdkit_metrics.BasicMolecularMetrics(
-            dataset_info=self.info, train_smiles=self.train_smiles
-        )
-        return [kl_n_nodes, kl_nodes, kl_edge, kl_valency, rdkit_mol_metrics]
 
     def _get_info(self, train_dataset, val_dataset):
         dummy_nodes_dist = torch.zeros(RetrosynthesisInfo.max_n_dummy_nodes + 1).to(

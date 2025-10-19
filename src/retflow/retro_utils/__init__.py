@@ -20,3 +20,4 @@ from retflow.retro_utils.data import (
     smi_tokenizer,
     get_forward_model,
 )
+from retflow.retro_utils.eval_helper import top_k_accuracy

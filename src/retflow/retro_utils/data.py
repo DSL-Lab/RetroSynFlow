@@ -470,5 +470,3 @@ def get_forward_model(n_best):
     )
     return build_translator(args, report_score=False)
 
-
-

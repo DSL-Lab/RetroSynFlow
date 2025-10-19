@@ -7,7 +7,6 @@ from torchdrug.data import DataLoader
 
 from retflow import config
 from retflow.datasets.dataset import Dataset
-from retflow.metrics import SamplingMetric
 from retflow.datasets.info import RetrosynthesisInfo
 from retflow.datasets.data.uspto_drug import _TorchDrugUSPTO
 from retflow.datasets.synthon import SynthonDataset
@@ -70,8 +69,6 @@ class TorchDrugRetroDataset(Dataset):
         test_loader = DataLoader(self.test_dataset, batch_size=self.batch_size)
         return test_loader, self.info
 
-    def get_metrics(self) -> List[SamplingMetric]:
-        return []
 
     def _get_train_and_val_loaders(
         self, train_dataset, val_dataset, dist_helper: DistributedHelper | None = None
