@@ -72,7 +72,6 @@ class Retrosynthesis(Problem):
         self,
         optim: torch.optim.Optimizer,
         sched: torch.optim.lr_scheduler._LRScheduler,
-        grad_clip: float,
         dist_helper: DistributedHelper | None,
     ):
         self.torch_model.train()
@@ -135,11 +134,6 @@ class Retrosynthesis(Problem):
             )
 
             loss.backward()
-
-            if grad_clip:
-                torch.nn.utils.clip_grad.clip_grad_norm_(
-                    self.torch_model.parameters(), grad_clip
-                )
 
             optim.step()
 
@@ -303,8 +297,6 @@ class Retrosynthesis(Problem):
                 pred_molecule_list = predicted_reactants_molecule_graph(
                     X, E, data.batch, to_generate
                 )
-                for metric in self.sampling_metrics:
-                    metric.update(pred_molecule_list, real=False)
 
                 scores = [0] * len(pred_molecule_list)
 
@@ -333,10 +325,6 @@ class Retrosynthesis(Problem):
             atom_decoder=self.info.atom_decoder,
             grouped_scores=grouped_scores,
         )
-
-        for metric in self.sampling_metrics:
-            metrics.update(metric.compute())
-            metric.reset()
 
         return metrics
 

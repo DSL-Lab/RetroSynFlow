@@ -29,7 +29,6 @@ class Problem(ABC):
         self,
         optim: torch.optim.Optimizer,
         sched: torch.optim.lr_scheduler._LRScheduler,
-        grad_clip: float | None,
         dist_helper: DistributedHelper | None,
     ) -> Dict[str, float]:
         pass

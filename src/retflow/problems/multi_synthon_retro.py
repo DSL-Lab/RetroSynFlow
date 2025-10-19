@@ -96,7 +96,6 @@ class MultiSynthonRetrosynthesis(Problem):
         self,
         optim: torch.optim.Optimizer,
         sched: torch.optim.lr_scheduler._LRScheduler,
-        grad_clip: float,
         log_every_n_batch: int,
         dist_helper: DistributedHelper | None,
     ):

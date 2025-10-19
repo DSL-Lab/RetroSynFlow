@@ -27,7 +27,6 @@ class SynthonCompletion(Retrosynthesis):
         self,
         optim: torch.optim.Optimizer,
         sched: torch.optim.lr_scheduler._LRScheduler,
-        grad_clip: float,
         dist_helper: DistributedHelper | None,
     ):
         self.torch_model.train()
@@ -103,11 +102,6 @@ class SynthonCompletion(Retrosynthesis):
             )
 
             loss.backward()
-
-            if grad_clip:
-                torch.nn.utils.clip_grad.clip_grad_norm_(
-                    self.torch_model.parameters(), grad_clip
-                )
 
             optim.step()
 
