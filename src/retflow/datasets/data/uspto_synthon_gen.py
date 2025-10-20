@@ -11,8 +11,8 @@ from torch_geometric.data import Data, InMemoryDataset
 
 from retflow.retro_utils.data import (
     compute_nodes_mapping,
-    compute_graph,
-    compute_graph_with_mapping,
+    build_graph_from_mol,
+    build_graph_from_mol_with_mapping,
 )
 
 from seq_graph_retro.utils.parse import get_reaction_info
@@ -101,14 +101,14 @@ class ReactionCenterUSPTO(InMemoryDataset):
 
             try:
                 mapping = compute_nodes_mapping(pmol)
-                p_x, p_edge_index, p_edge_attr = compute_graph_with_mapping(
+                p_x, p_edge_index, p_edge_attr = build_graph_from_mol_with_mapping(
                     pmol,
                     mapping,
                     p_num_nodes,
                     types=RetrosynthesisInfo.atom_encoder,
                     bonds=RetrosynthesisInfo.bonds,
                 )
-                s_x, s_edge_index, s_edge_attr = compute_graph_with_mapping(
+                s_x, s_edge_index, s_edge_attr = build_graph_from_mol_with_mapping(
                     synthons_mol,
                     mapping,
                     p_num_nodes,

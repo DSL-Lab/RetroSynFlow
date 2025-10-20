@@ -7,7 +7,7 @@ from rdkit import Chem
 import torch
 from torch_geometric.data import Data, InMemoryDataset
 from retflow.retro_utils.data import (
-    compute_graph_with_mapping,
+    build_graph_from_mol_with_mapping,
     compute_nodes_order_mapping,
 )
 from retflow.datasets.info import (
@@ -117,14 +117,14 @@ class USPTO(InMemoryDataset):
 
             try:
                 mapping = compute_nodes_order_mapping(rmol)
-                r_x, r_edge_index, r_edge_attr = compute_graph_with_mapping(
+                r_x, r_edge_index, r_edge_attr = build_graph_from_mol_with_mapping(
                     rmol,
                     mapping,
                     r_num_nodes,
                     types=RetrosynthesisInfo.atom_encoder,
                     bonds=RetrosynthesisInfo.bonds,
                 )
-                p_x, p_edge_index, p_edge_attr = compute_graph_with_mapping(
+                p_x, p_edge_index, p_edge_attr = build_graph_from_mol_with_mapping(
                     pmol,
                     mapping,
                     r_num_nodes,

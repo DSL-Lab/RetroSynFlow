@@ -11,8 +11,8 @@ from torchdrug.data import Molecule
 
 from retflow.retro_utils.data import (
     compute_nodes_mapping,
-    compute_graph,
-    compute_graph_with_mapping,
+    build_graph_from_mol,
+    build_graph_from_mol_with_mapping,
     get_synthons,
     reactants_with_partial_atom_mapping,
 )
@@ -105,21 +105,21 @@ class GRSynthonUSPTO(InMemoryDataset):
             r_num_nodes = new_r_num_nodes
             try:
                 mapping = compute_nodes_mapping(rmol)
-                r_x, r_edge_index, r_edge_attr = compute_graph_with_mapping(
+                r_x, r_edge_index, r_edge_attr = build_graph_from_mol_with_mapping(
                     rmol,
                     mapping,
                     r_num_nodes,
                     types=RetrosynthesisInfo.atom_encoder,
                     bonds=RetrosynthesisInfo.bonds,
                 )
-                s_x, s_edge_index, s_edge_attr = compute_graph_with_mapping(
+                s_x, s_edge_index, s_edge_attr = build_graph_from_mol_with_mapping(
                     synthons_mol,
                     mapping,
                     r_num_nodes,
                     types=RetrosynthesisInfo.atom_encoder,
                     bonds=RetrosynthesisInfo.bonds,
                 )
-                p_x, p_edge_index, p_edge_attr = compute_graph_with_mapping(
+                p_x, p_edge_index, p_edge_attr = build_graph_from_mol_with_mapping(
                     pmol,
                     mapping,
                     r_num_nodes,
