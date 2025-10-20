@@ -10,8 +10,7 @@ import pickle
 import torch
 from torch import distributed as dist
 
-from retflow.datasets.info import RetrosynthesisInfo
-from retflow.retro_utils.data import build_molecule, smi_tokenizer, get_forward_model
+from retflow.retro_utils.data import smi_tokenizer, get_forward_model
 from retflow import config
 
 
@@ -115,81 +114,6 @@ def make_table_from_processed(output_save_path: Path):
                 "score": computed_scores,
             }
         )
-
-
-def make_table(output_save_path: Path):
-    config.get_logger().info(f"Loading data from file: {output_save_path}.")
-    with open(output_save_path, "rb") as file:
-        output_data = pickle.load(file)
-
-    config.get_logger().info("Finished loading data.")
-
-    true_molecules_smiles = []
-    pred_molecules_smiles = []
-    product_molecules_smiles = []
-    computed_scores = []
-    true_atom_nums = []
-    sampled_atom_nums = []
-
-    reactants = output_data["reactants"]
-    products = output_data["products"]
-    predicted_reactants = output_data["predicted_reactants"]
-    scores = output_data["scores"]
-
-    config.get_logger().info(
-        "Processing data to compute Top-K accuracy metric. This might take a while..."
-    )
-
-    for i in tqdm(range(len(products))):
-        true_mol = reactants[i]
-        product_mol = products[i]
-
-        true_mol, true_n_dummy_atoms = build_molecule(
-            true_mol[0],
-            true_mol[1],
-            RetrosynthesisInfo.atom_decoder,
-            return_n_dummy_atoms=True,
-        )
-        true_smi = Chem.MolToSmiles(true_mol)
-
-        product_mol = build_molecule(
-            product_mol[0], product_mol[1], RetrosynthesisInfo.atom_decoder
-        )
-        product_smi = Chem.MolToSmiles(product_mol)
-
-        for pred_mol, pred_score in zip(
-            predicted_reactants[i],
-            scores[i],
-        ):
-
-            pred_mol, n_dummy_atoms = build_molecule(
-                pred_mol[0],
-                pred_mol[1],
-                RetrosynthesisInfo.atom_decoder,
-                return_n_dummy_atoms=True,
-            )
-            pred_smi = Chem.MolToSmiles(pred_mol)
-            true_molecules_smiles.append(true_smi)
-            product_molecules_smiles.append(product_smi)
-            pred_molecules_smiles.append(pred_smi)
-            computed_scores.append(pred_score)
-            true_atom_nums.append(
-                RetrosynthesisInfo.max_n_dummy_nodes - true_n_dummy_atoms
-            )
-            sampled_atom_nums.append(
-                RetrosynthesisInfo.max_n_dummy_nodes - n_dummy_atoms
-            )
-
-    return pd.DataFrame(
-        {
-            "product": product_molecules_smiles,
-            "pred": pred_molecules_smiles,
-            "true": true_molecules_smiles,
-            "score": computed_scores,
-            "true_n_dummy_nodes": true_atom_nums,
-            "sampled_n_dummy_nodes": sampled_atom_nums,
-        }
-    )
 
 
 def canonicalize(smi):
@@ -327,15 +251,13 @@ def top_k_accuracy(
 
     for i, sampled_reactants in enumerate(grouped_samples):
         true_reactants = ground_truth[i]
-        true_mol = build_molecule(true_reactants[0], true_reactants[1], atom_decoder)
-        true_smi = Chem.MolToSmiles(true_mol)
+        true_smi = Chem.MolToSmiles(true_reactants, canonical=True)
         if true_smi is None:
             continue
 
         sampled_smis = []
         for sample in sampled_reactants:
-            sampled_mol = build_molecule(sample[0], sample[1], atom_decoder)
-            sampled_smi = Chem.MolToSmiles(sampled_mol)
+            sampled_smi = Chem.MolToSmiles(sample, canonical=True)
             if sampled_smi is None:
                 continue
             sampled_smis.append(sampled_smi)

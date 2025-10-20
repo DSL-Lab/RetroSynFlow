@@ -14,16 +14,14 @@ from retflow.problems.problem import Problem
 from retflow.retro_utils import (
     ExtraFeatures,
     GraphModelWrapper,
-    predicted_reactants_molecule_graph,
     build_molecule,
     to_dense,
     build_simple_molecule,
-    synthons_molecule_graph,
 )
 from retflow.retro_utils.data import (
-    compute_graph,
+    build_graph_from_mol,
     compute_nodes_mapping,
-    compute_graph_with_mapping,
+    build_graph_from_mol_with_mapping,
 )
 from rdkit import Chem
 from retflow.runner import DistributedHelper
@@ -316,14 +314,14 @@ class MultiSynthonRetrosynthesis(Problem):
             mapping = compute_nodes_mapping(synthons_mol)
             num_nodes = synthons_mol.GetNumAtoms() + self.info.max_n_dummy_nodes
 
-            s_x, s_edge_index, s_edge_attr = compute_graph_with_mapping(
+            s_x, s_edge_index, s_edge_attr = build_graph_from_mol_with_mapping(
                 synthons_mol,
                 mapping,
                 num_nodes,
                 types=self.info.atom_encoder,
                 bonds=self.info.bonds,
             )
-            p_x, p_edge_index, p_edge_attr = compute_graph_with_mapping(
+            p_x, p_edge_index, p_edge_attr = build_graph_from_mol_with_mapping(
                 product_mol,
                 mapping,
                 num_nodes,
@@ -376,7 +374,7 @@ class MultiSynthonRetrosynthesis(Problem):
             synthons_mol = Chem.MolFromSmiles(synthon_smi, sanitize=False)
             num_nodes = synthons_mol.GetNumAtoms() + self.info.max_n_dummy_nodes
 
-            s_x, s_edge_index, s_edge_attr = compute_graph(
+            s_x, s_edge_index, s_edge_attr = build_graph_from_mol(
                 synthons_mol,
                 num_nodes,
                 types=self.info.atom_encoder,

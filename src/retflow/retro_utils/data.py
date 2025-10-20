@@ -7,7 +7,7 @@ import torch.nn.functional as F
 import torch_geometric
 from torch_scatter import scatter_max
 from torchdrug.data import Molecule
-from torch_geometric.utils import to_dense_adj, to_dense_batch, scatter
+from torch_geometric.utils import to_dense_adj, to_dense_batch
 
 from onmt.translate.translator import build_translator
 
@@ -99,41 +99,6 @@ def build_molecule(atom_types, edge_types, atom_decoder, return_n_dummy_atoms=Fa
         return mol
 
 
-def build_molecule_with_partial_charges(atom_types, edge_types, atom_decoder):
-    mol = Chem.RWMol()
-    for atom in atom_types:
-        a = Chem.Atom(atom_decoder[atom.item()])
-        mol.AddAtom(a)
-
-    edge_types_up = torch.triu(edge_types)
-    all_bonds = torch.nonzero(edge_types_up)
-
-    for i, bond in enumerate(all_bonds):
-        if bond[0].item() != bond[1].item():
-            mol.AddBond(
-                bond[0].item(),
-                bond[1].item(),
-                bond_dict[edge_types_up[bond[0], bond[1]].item()],
-            )
-            # add formal charge to atom: e.g. [O+], [N+], [S+]
-            # not support [O-], [N-], [S-], [NH+] etc.
-            flag, atomid_valence = check_valency(mol)
-
-            if flag or len(atomid_valence) != 2:
-                continue
-            else:
-                # TODO: check if it is an issue
-                # assert len(atomid_valence) == 2
-                idx = atomid_valence[0]
-                v = atomid_valence[1]
-                an = mol.GetAtomWithIdx(idx).GetAtomicNum()
-
-                if an in (7, 8, 16) and (v - ATOM_VALENCY[an]) == 1:
-                    mol.GetAtomWithIdx(idx).SetFormalCharge(1)
-                    # print("Formal charge added")
-    return mol
-
-
 def build_simple_molecule(molecule):
     mol = Chem.RWMol()
     mapping = {}
@@ -154,81 +119,55 @@ def build_simple_molecule(molecule):
     return mol
 
 
-# Functions from GDSS
-def check_valency(mol):
-    try:
-        Chem.SanitizeMol(mol, sanitizeOps=Chem.SanitizeFlags.SANITIZE_PROPERTIES)
-        return True, None
-    except ValueError as e:
-        e = str(e)
-        p = e.find("#")
-        e_sub = e[p:]
-        atomid_valence = list(map(int, re.findall(r"\d+", e_sub)))
-        return False, atomid_valence
-
-
-def reactants_molecule_graph(data, batch_size):
-    reactants, r_node_mask = to_dense(
-        data.x, data.edge_index, data.edge_attr, data.batch
-    )
-    reactants = reactants.mask(r_node_mask, collapse=True)
-    n_nodes = scatter(torch.ones_like(data.batch), data.batch, reduce="sum")
-    true_molecule_list = []
-    for i in range(batch_size):
+def get_graph_list(X, E, node_mask, onehot=False):
+    graph_list = []
+    n_nodes = node_mask.sum(-1)
+    for i in range(len(X)):
         n = n_nodes[i]
-        atom_types = reactants.X[i, :n].cpu()
-        edge_types = reactants.E[i, :n, :n].cpu()
-        true_molecule_list.append([atom_types, edge_types])
 
-    return true_molecule_list
+        atom_types = X[i, :n].cpu()
+        edge_types = E[i, :n, :n].cpu()
+
+        if onehot:
+            atom_types = atom_types.argmax(-1)
+            edge_types = edge_types.argmax(-1)
+        
+        graph_list.append([atom_types, edge_types])
+    return graph_list
 
 
-def predicted_reactants_molecule_graph(X, E, batch_mask, batch_size):
+def get_molecule_list(X, E, node_mask, atom_decoder, onehot=False):
     molecule_list = []
-    n_nodes = scatter(torch.ones_like(batch_mask), batch_mask, reduce="sum")
-    for i in range(batch_size):
+    n_nodes = node_mask.sum(-1)
+    for i in range(len(X)):
         n = n_nodes[i]
         atom_types = X[i, :n].cpu()
         edge_types = E[i, :n, :n].cpu()
-        molecule_list.append([atom_types, edge_types])
 
+        if onehot:
+            atom_types = atom_types.argmax(-1)
+            edge_types = edge_types.argmax(-1)
+        mol = build_molecule(atom_types, edge_types, atom_decoder)
+        molecule_list.append(mol)
     return molecule_list
 
-
-def products_molecule_graph(data, batch_size):
-    products, p_node_mask = to_dense(
-        data.p_x, data.p_edge_index, data.p_edge_attr, data.batch
-    )
-    products = products.mask(p_node_mask, collapse=True)
-    n_nodes = scatter(torch.ones_like(data.batch), data.batch, reduce="sum")
-    products_list = []
-    for i in range(batch_size):
+def get_molecule_smi_list(X, E, node_mask, atom_decoder, onehot=False):
+    molecule_smi_list = []
+    n_nodes = node_mask.sum(-1)
+    for i in range(len(X)):
         n = n_nodes[i]
-        atom_types = products.X[i, :n].cpu()
-        edge_types = products.E[i, :n, :n].cpu()
-        products_list.append([atom_types, edge_types])
-
-    return products_list
-
-
-def synthons_molecule_graph(data, batch_size):
-    synthons, s_node_mask = to_dense(
-        data.s_x, data.s_edge_index, data.s_edge_attr, data.batch
-    )
-    synthons = synthons.mask(s_node_mask, collapse=True)
-    n_nodes = scatter(torch.ones_like(data.batch), data.batch, reduce="sum")
-    products_list = []
-    for i in range(batch_size):
-        n = n_nodes[i]
-        atom_types = synthons.X[i, :n].cpu()
-        edge_types = synthons.E[i, :n, :n].cpu()
-        products_list.append([atom_types, edge_types])
-
-    return products_list
+        atom_types = X[i, :n].cpu()
+        edge_types = E[i, :n, :n].cpu()
+        if onehot:
+            atom_types = atom_types.argmax(-1)
+            edge_types = edge_types.argmax(-1)
+        mol = build_molecule(atom_types, edge_types, atom_decoder)
+        molecule_smi_list.append(Chem.MolToSmiles(mol, canonical=True))
+    return molecule_smi_list
 
 
 # following functions are for dataset processing and used for synthon based retrosynthesis
-def compute_graph(molecule, max_num_nodes, types, bonds):
+def build_graph_from_mol(molecule, max_num_nodes, types, bonds):
     max_num_nodes = max(
         molecule.GetNumAtoms(), max_num_nodes
     )  # in case |reactants|-|product| > max_n_dummy_nodes
@@ -257,7 +196,7 @@ def compute_graph(molecule, max_num_nodes, types, bonds):
     return x, edge_index, edge_attr
 
 
-def compute_graph_with_mapping(molecule, mapping, max_num_nodes, types, bonds):
+def build_graph_from_mol_with_mapping(molecule, mapping, max_num_nodes, types, bonds):
     max_num_nodes = max(
         molecule.GetNumAtoms(), max_num_nodes
     )  # in case |reactants|-|product| > max_n_dummy_nodes
@@ -312,8 +251,8 @@ def reactants_with_partial_atom_mapping(
     for atom in reactant.GetAtoms():
         if atom.GetAtomMapNum() > s:
             atom.SetAtomMapNum(0)
-    rmol2_s = Chem.MolToSmiles(reactant, canonical=True)
-    return Molecule.from_molecule(Chem.MolFromSmiles(rmol2_s), atom_feature)
+    new_rmol = Chem.MolToSmiles(reactant, canonical=True)
+    return Molecule.from_molecule(Chem.MolFromSmiles(new_rmol), atom_feature)
 
 
 def get_synthons(reactant: Molecule, product: Molecule):

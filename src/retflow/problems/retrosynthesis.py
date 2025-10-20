@@ -4,7 +4,6 @@ from tqdm import tqdm
 from pathlib import Path
 
 import torch
-from rdkit import Chem
 
 from retflow import config
 from retflow.optimizers.optimizer import Optimizer
@@ -13,12 +12,10 @@ from retflow.retro_utils import (
     ExtraFeatures,
     GraphModelWrapper,
     PlaceHolder,
-    reactants_molecule_graph,
-    products_molecule_graph,
-    predicted_reactants_molecule_graph,
     to_dense,
-    build_molecule,
-    top_k_accuracy
+    top_k_accuracy,
+    get_molecule_list,
+    get_molecule_smi_list,
 )
 from retflow.runner import DistributedHelper
 
@@ -277,10 +274,12 @@ class Retrosynthesis(Problem):
             )
             product = product.mask(node_mask)
 
-            true_molecule_list = reactants_molecule_graph(data, to_generate)
-            products_list = products_molecule_graph(data, to_generate)
-            ground_truth.extend(true_molecule_list)
+            reactants, node_mask = to_dense(
+                data.x, data.edge_index, data.edge_attr, data.batch
+            )
+            reactants = reactants.mask(node_mask, collapse=True)
 
+            ground_truth.extend(get_molecule_list(reactants.X, reactants.E, node_mask, self.info.atom_decoder))
 
             for _ in range(examples_per_sample):
                 X, E = self.method.sample(
@@ -290,10 +289,7 @@ class Retrosynthesis(Problem):
                     predictor=self.model_wrapper,
                 )
 
-                pred_molecule_list = predicted_reactants_molecule_graph(
-                    X, E, data.batch, to_generate
-                )
-
+                pred_molecule_list = get_molecule_list(X, E, node_mask, self.info.atom_decoder)
                 scores = [0] * len(pred_molecule_list)
 
                 batch_groups.append(pred_molecule_list)
@@ -332,95 +328,53 @@ class Retrosynthesis(Problem):
         self.torch_model.eval()
 
         num_samples = 0
-        products = []
-        true_reactants = []
-        predicted_reactants = []
+        product_mol_smis = []
+        reactants_mol_smis = []
+        pred_reactants_mol_smis = []
         pred_reactant_scores = []
 
         for i, data in enumerate(self.test_loader):
             config.get_logger().info(
                 f"Generated reactants for {num_samples} product molecules so far."
             )
-            config.get_logger().info(f"Generating samples for batch {i} of data.")
-
             bs = len(data.batch.unique())
-
-            batch_groups = []
-            batch_scores = []
+            assert bs == 1
 
             data = data.to(config.get_device())
             product, node_mask = to_dense(
                 data.p_x, data.p_edge_index, data.p_edge_attr, data.batch
             )
-            print(product.X.shape)
             product = product.mask(node_mask)
-            reactants_list = reactants_molecule_graph(data, bs)
-            products_list = products_molecule_graph(data, bs)
+            reactant, node_mask = to_dense(
+                data.x, data.edge_index, data.edge_attr, data.batch
+            )
+            reactant = reactant.mask(node_mask)
 
-            ground_truth = []
-            input_products = []
-            for reactant_graph, product_graph in zip(reactants_list, products_list):
-                r_mol = build_molecule(
-                    reactant_graph[0], reactant_graph[1], self.info.atom_decoder
-                )
-                p_mol = build_molecule(
-                    product_graph[0], product_graph[1], self.info.atom_decoder
-                )
-                ground_truth.append(Chem.MolToSmiles(r_mol, canonical=True))
-                input_products.append(Chem.MolToSmiles(p_mol, canonical=True))
+            reactants_mol_smis.extend(get_molecule_smi_list(reactant.X, reactant.E, node_mask, self.info.atom_decoder, onehot=True))
+            product_mol_smis.extend(get_molecule_smi_list(product.X, product.E, node_mask, self.info.atom_decoder, onehot=True))
 
-            for j in range(examples_per_sample):
-                config.get_logger().info(
-                    f"Sampling reactant {j + 1} out of {examples_per_sample} for each molecule in batch."
-                )
-                X, E = self.method.sample(
-                    initial_graph=product,
-                    node_mask=node_mask,
-                    context=product.clone(),
-                    predictor=self.model_wrapper,
-                )
-                pred_reactants_batch_list = predicted_reactants_molecule_graph(
-                    X, E, data.batch, bs
-                )
-                scores = [0] * len(pred_reactants_batch_list)
-                pred_reactants_smis = []
-                for pred_reactant_graph in pred_reactants_batch_list:
-                    pred_reactant = build_molecule(
-                        pred_reactant_graph[0],
-                        pred_reactant_graph[1],
-                        self.info.atom_decoder,
-                    )
-                    pred_reactants_smis.append(
-                        Chem.MolToSmiles(pred_reactant, canonical=True)
-                    )
+            product.X = product.X.repeat((examples_per_sample, 1, 1))
+            product.E = product.E.repeat((examples_per_sample, 1, 1, 1))
+            node_mask = node_mask.repeat((examples_per_sample, 1))
 
-                batch_groups.append(pred_reactants_smis)
-                batch_scores.append(scores)
-
-            # for loop to do transpose, batch size length array each entry is another array
-            # with samples per product entries
-            for mol_idx_in_batch in range(bs):
-                mol_samples_group = []
-                mol_scores_group = []
-
-                for batch_group, scores_group in zip(batch_groups, batch_scores):
-                    mol_samples_group.append(batch_group[mol_idx_in_batch])
-                    mol_scores_group.append(scores_group[mol_idx_in_batch])
-
-                assert len(mol_samples_group) == examples_per_sample
-
-                predicted_reactants.append(mol_samples_group)
-                pred_reactant_scores.append(mol_scores_group)
-
-                true_reactants.append(ground_truth[mol_idx_in_batch])
-                products.append(input_products[mol_idx_in_batch])
-
-            num_samples += bs
+            X, E = self.method.sample(
+                initial_graph=product,
+                node_mask=node_mask,
+                context=product.clone(),
+                predictor=self.model_wrapper,
+            )
+   
+            pred_reactants_smi_list = get_molecule_smi_list(X, E, node_mask, self.info.atom_decoder)
+            scores = [0] * len(pred_reactants_smi_list)
+            pred_reactants_mol_smis.append(pred_reactants_smi_list)
+            pred_reactant_scores.append(scores)
+            num_samples += 1
 
         sampled_data = {
-            "reactants": true_reactants,
-            "products": products,
-            "predicted_reactants": predicted_reactants,
+            "reactants": reactants_mol_smis,
+            "products": product_mol_smis,
+            "predicted_reactants": pred_reactants_mol_smis,
             "scores": pred_reactant_scores,
         }
         return sampled_data
+
