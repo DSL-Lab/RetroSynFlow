@@ -240,13 +240,13 @@ def compute_forward_predictions(df):
 
 
 def top_k_accuracy(
-    grouped_samples, ground_truth, atom_decoder, grouped_scores=None, ddp: bool = False
+    grouped_samples, ground_truth, ddp: bool = False
 ):
     """
     Compute top-N accuracy. Inputs are matrices of atom types and bonds.
     """
     top_k_success = {k: 0 for k in [1, 3, 5, 10, 50]}
-    top_k_success_scoring = {k: 0 for k in [1, 3, 5, 10, 50]}
+
     total = 0
 
     for i, sampled_reactants in enumerate(grouped_samples):
@@ -266,15 +266,6 @@ def top_k_accuracy(
         for k in top_k_success.keys():
             top_k_success[k] += true_smi in set(sampled_smis[:k])
 
-        if grouped_scores is not None:
-            scores = grouped_scores[i]
-            sorted_sampled_smis = [
-                sampled_smis[j]
-                for j, _ in sorted(enumerate(scores), key=lambda t: t[1], reverse=True)
-            ]
-
-            for k in top_k_success_scoring.keys():
-                top_k_success_scoring[k] += true_smi in set(sorted_sampled_smis[:k])
 
     if ddp:
         dist.barrier()
@@ -287,16 +278,8 @@ def top_k_accuracy(
             dist.all_reduce(tk)
             top_k_success[k] = tk.item()
 
-        for k in top_k_success_scoring.keys():
-            tks = torch.tensor(top_k_success_scoring[k]).cuda()
-            dist.all_reduce(tks)
-            top_k_success_scoring[k] = tks.item()
-
     metrics = {}
     for k in top_k_success.keys():
         metrics[f"top_{k}_accuracy"] = top_k_success[k] / total
-
-    for k in top_k_success_scoring.keys():
-        metrics[f"top_{k}_scoring"] = top_k_success_scoring[k] / total
 
     return metrics

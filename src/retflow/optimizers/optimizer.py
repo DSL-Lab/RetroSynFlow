@@ -11,7 +11,6 @@ from retflow.optimizers.schedulers import LearningRateSched
 @dataclass
 class Optimizer(ABC):
     lr: float
-    grad_clip: float | None
     lr_sched: LearningRateSched
 
     @abstractmethod
