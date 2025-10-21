@@ -10,13 +10,12 @@ from retflow.datasets.data.uspto_synthon import (
     MultiSynthonUSPTO,
     MultiSynthonProductUSPTO,
 )
-from retflow.datasets.data.uspto_synthon_gen import ReactionCenterUSPTO
-from retflow.datasets.data.uspto_synthon_gr import GRSynthonUSPTO
+
 from retflow.datasets.info import (
     SYNTHON_NAMES,
     RetrosynthesisInfo,
 )
-from retflow.retro_utils import to_dense, ExtraMolecularFeatures
+from retflow.utils import to_dense, ExtraMolecularFeatures
 from retflow.datasets.retro import RetroDataset
 from retflow.runner import DistributedHelper
 
@@ -35,12 +34,6 @@ class SynthonDataset(RetroDataset):
         elif self.name == "MultiSynthonProductUSPTO":
             train_dataset = MultiSynthonProductUSPTO(split="train", root=str(save_dir))
             val_dataset = MultiSynthonProductUSPTO(split="val", root=str(save_dir))
-        elif self.name == "ReactionCenterUSPTO":
-            train_dataset = ReactionCenterUSPTO(split="train", root=str(save_dir))
-            val_dataset = ReactionCenterUSPTO(split="val", root=str(save_dir))
-        elif self.name == "GRSynthonUSPTO":
-            train_dataset = GRSynthonUSPTO(split="train", root=str(save_dir))
-            val_dataset = GRSynthonUSPTO(split="val", root=str(save_dir))
         else:
             raise NotImplementedError
 
@@ -61,14 +54,6 @@ class SynthonDataset(RetroDataset):
                 )
             elif self.name == "MultiSynthonProductUSPTO":
                 MultiSynthonProductUSPTO(
-                    split=split, root=str(save_dir), download_and_process=True
-                )
-            elif self.name == "ReactionCenterUSPTO":
-                ReactionCenterUSPTO(
-                    split=split, root=str(save_dir), download_and_process=True
-                )
-            elif self.name == "GRSynthonUSPTO":
-                GRSynthonUSPTO(
                     split=split, root=str(save_dir), download_and_process=True
                 )
 
@@ -94,22 +79,6 @@ class SynthonDataset(RetroDataset):
             self.info = self._get_info(
                 MultiSynthonProductUSPTO(split="train", root=str(save_dir)),
                 MultiSynthonProductUSPTO(split="val", root=str(save_dir)),
-            )
-        elif self.name == "ReactionCenterUSPTO":
-            test_dataset = ReactionCenterUSPTO(
-                split="val" if load_valid else "test", root=str(save_dir)
-            )
-            self.info = self._get_info(
-                ReactionCenterUSPTO(split="train", root=str(save_dir)),
-                ReactionCenterUSPTO(split="val", root=str(save_dir)),
-            )
-        elif self.name == "GRSynthonUSPTO":
-            test_dataset = GRSynthonUSPTO(
-                split="val" if load_valid else "test", root=str(save_dir)
-            )
-            self.info = self._get_info(
-                GRSynthonUSPTO(split="train", root=str(save_dir)),
-                GRSynthonUSPTO(split="val", root=str(save_dir)),
             )
         else:
             raise NotImplementedError

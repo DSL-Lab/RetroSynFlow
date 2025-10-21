@@ -1,17 +1,16 @@
 from dataclasses import dataclass
-from typing import List, Tuple
+from typing import Tuple
 import copy
 import os
 
 import torch
-from torch.nn import Module
 from torch_geometric.loader import DataLoader
 from torch.utils.data.distributed import DistributedSampler
 
 from retflow import config
 from retflow.datasets.dataset import Dataset
 
-from retflow.retro_utils import (
+from retflow.utils import (
     ExtraFeatures,
     GraphDimensions,
     to_dense,
@@ -289,8 +288,9 @@ class ToyRetroDataset(RetroDataset):
         train_dataset = USPTO(split="train", root=str(save_dir))[0 : self.num_molecules]
         val_dataset = copy.deepcopy(train_dataset)
 
-        train_loader, val_loader, self.info = self._get_loaders_and_info(
-            train_dataset, val_dataset, dist_helper=dist_helper
+        train_loader, val_loader = self._get_train_and_val_loaders(
+            train_dataset, val_dataset, dist_helper
         )
+        self.info = self._get_info(train_dataset, val_dataset)
         self.train_smiles = train_dataset.r_smiles
         return train_loader, val_loader, self.info

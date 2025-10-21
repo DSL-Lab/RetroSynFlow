@@ -5,7 +5,7 @@ from retflow.datasets import SynthonDataset
 from retflow.methods import DiscreteFM, LinearTimeScheduler, UniformTimeSampler
 from retflow.problems import SynthonCompletion
 from retflow.models import GraphTransformer
-from retflow.retro_utils import GraphModelLayerInfo
+from retflow.utils import GraphModelLayerInfo
 from retflow.runner import slurm_config, cli_runner
 
 

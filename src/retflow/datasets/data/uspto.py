@@ -6,7 +6,7 @@ import pandas as pd
 from rdkit import Chem
 import torch
 from torch_geometric.data import Data, InMemoryDataset
-from retflow.retro_utils.data import (
+from retflow.utils.data import (
     build_graph_from_mol_with_mapping,
     compute_nodes_order_mapping,
 )

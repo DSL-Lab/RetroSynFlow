@@ -1,5 +1,5 @@
 import torch
-from retflow.retro_utils.place_holders import PlaceHolder
+from retflow.utils.wrappers import GraphWrapper
 
 
 class ExtraFeatures:
@@ -19,7 +19,7 @@ class ExtraFeatures:
         )
         # (bs, n, 1), (bs, n, 2)
 
-        return PlaceHolder(
+        return GraphWrapper(
             X=torch.cat((x_cycles, nonlcc_indicator, k_lowest_eigvec), dim=-1),
             E=extra_edge_attr,
             y=torch.hstack((n, y_cycles, n_components, batched_eigenvalues)),

@@ -5,13 +5,13 @@ from abc import ABC, abstractmethod
 import torch
 import torch.nn.functional as F
 
-from retflow.retro_utils.place_holders import PlaceHolder
+from retflow.utils.wrappers import GraphWrapper
 from retflow.datasets.retro import RetrosynthesisInfo
 from retflow.methods.discrete_fm.basic import DiscreteFM
 from retflow.methods.method_utils import sample_discrete_features, pad_t_like_x
-from retflow.retro_utils.data import build_molecule
+from retflow.utils.data import build_molecule
 from retflow.datasets.retro import RetrosynthesisInfo
-from retflow.retro_utils import get_forward_model, smi_tokenizer
+from retflow.utils import get_forward_model, smi_tokenizer
 from rdkit import Chem
 from rdkit.Chem import QED
 
@@ -174,7 +174,7 @@ class FKSteeringDiscreteFM(DiscreteFM):
                 / self.edge_time_sched.kappa_prime(tb),
             )
 
-            noisy_graph = PlaceHolder(X, E, y)
+            noisy_graph = GraphWrapper(X, E, y)
             X_p, E_p = predictor(
                 noisy_graph, repeated_node_mask, context, tb.unsqueeze(-1)
             )
@@ -183,7 +183,7 @@ class FKSteeringDiscreteFM(DiscreteFM):
                 X_p = X_p / self.initial_temperature
                 E_p = E_p / self.initial_temperature
 
-            pred = PlaceHolder(X_p, E_p, y=initial_graph.y).mask(repeated_node_mask)
+            pred = GraphWrapper(X_p, E_p, y=initial_graph.y).mask(repeated_node_mask)
             X_ut = self._compute_node_vector_field(X, pred.X, tb)
             E_ut = self._compute_edge_vector_field(E, pred.E, tb)
 
@@ -233,7 +233,7 @@ class FKSteeringDiscreteFM(DiscreteFM):
             assert (X_raw.shape == X.shape) and (E_raw.shape == E.shape)
 
             graph = (
-                PlaceHolder(X_raw, E_raw, y).mask(repeated_node_mask).type_as(initial_graph.X)
+                GraphWrapper(X_raw, E_raw, y).mask(repeated_node_mask).type_as(initial_graph.X)
             )
 
             graph.X = (
@@ -250,7 +250,7 @@ class FKSteeringDiscreteFM(DiscreteFM):
         pbar.close()
 
         X, E = self.final_step(X, E, bs)
-        final_graph = PlaceHolder(X, E, y)
+        final_graph = GraphWrapper(X, E, y)
         final_graph = final_graph.mask(node_mask, collapse=True)
         X, E, y = final_graph.X, final_graph.E, final_graph.y
 

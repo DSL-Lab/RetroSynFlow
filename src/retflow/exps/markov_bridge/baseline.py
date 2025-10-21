@@ -5,7 +5,7 @@ from retflow.datasets import RetroDataset
 from retflow.methods import MarkovBridge
 from retflow.problems import Retrosynthesis
 from retflow.models import GraphTransformer
-from retflow.retro_utils import GraphModelLayerInfo
+from retflow.utils import GraphModelLayerInfo
 from retflow.runner import slurm_config, cli_runner
 
 model = GraphTransformer(

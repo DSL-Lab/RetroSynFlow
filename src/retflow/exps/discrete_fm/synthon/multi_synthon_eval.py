@@ -16,7 +16,6 @@ experiments_evals = [
     ExperimentEvaluator(
         experiment=experiment,
         test_method=test_method,
-        test_batch_size=256,
         examples_per_sample=100,
         checkpoint_name="model_epoch_600.pt",
         output_name="no_product_100_reactants",

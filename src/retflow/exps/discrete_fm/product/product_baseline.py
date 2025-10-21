@@ -5,7 +5,7 @@ from retflow.datasets import RetroDataset
 from retflow.methods import DiscreteFM, LinearTimeScheduler, UniformTimeSampler
 from retflow.problems import Retrosynthesis
 from retflow.models import GraphTransformer
-from retflow.retro_utils import GraphModelLayerInfo
+from retflow.utils import GraphModelLayerInfo
 from retflow.runner import slurm_config, cli_runner
 
 model = GraphTransformer(
@@ -16,7 +16,7 @@ model = GraphTransformer(
     hidden_dims=GraphModelLayerInfo(256, 64, 64),
 )
 
-dataset = RetroDataset(name="USPTO", batch_size=32 * 3)
+dataset = RetroDataset(name="USPTO", batch_size=32)
 method = DiscreteFM(
     steps=50,
     edge_time_sched=LinearTimeScheduler(),
@@ -28,8 +28,8 @@ method = DiscreteFM(
 experiment = Experiment(
     problem=Retrosynthesis(model, dataset, method),
     optim=AdamW(lr=2e-4, grad_clip=None, lr_sched=ConsLR()),
-    epochs=500,
-    sample_epoch=50,
+    epochs=2,
+    sample_epoch=1,
     num_samples=128,
     examples_per_sample=5,
     seed=42,

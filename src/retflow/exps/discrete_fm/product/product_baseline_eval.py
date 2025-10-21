@@ -6,7 +6,6 @@ experiments_evals = [
     ExperimentEvaluator(
         experiment=experiment,
         test_method=experiment.problem.method,
-        test_batch_size=256,
         examples_per_sample=100,
         checkpoint_name="model_epoch_300.pt",
         output_name=f"linear_100_reactants",

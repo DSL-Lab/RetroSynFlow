@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 from retflow.datasets.retro import RetrosynthesisInfo
 from retflow.models.model import Model
-from retflow.retro_utils.place_holders import PlaceHolder
+from retflow.utils.wrappers import GraphWrapper
 from retflow.methods.method import Method
 from retflow.methods.loss_functions import TrainLossVLB, TrainLossDiscrete
 from retflow.methods.markov_bridge.noise_schedule import (
@@ -112,7 +112,7 @@ class MarkovBridge(Method):
         E_t = F.one_hot(sampled_t.E, num_classes=self.output_dim.edge_dim)
         assert (X.shape == X_t.shape) and (E.shape == E_t.shape)
 
-        noisy_graph = PlaceHolder(X=X_t, E=E_t, y=y).type_as(X_t).mask(node_mask)
+        noisy_graph = GraphWrapper(X=X_t, E=E_t, y=y).type_as(X_t).mask(node_mask)
 
         return noisy_graph, node_mask, t_float
 
@@ -142,9 +142,9 @@ class MarkovBridge(Method):
             # Sample z_s
             t_norm = 1 - t_norm
             beta_t = self.noise_sched(t_normalized=t_norm)
-            noisy_graph = PlaceHolder(X, E, y)
+            noisy_graph = GraphWrapper(X, E, y)
             X_p, E_p = predictor(noisy_graph, node_mask, context, t_norm)
-            pred = PlaceHolder(X_p, E_p).mask(node_mask)
+            pred = GraphWrapper(X_p, E_p).mask(node_mask)
 
             sampled_s, _, _, _ = self.sample_p_zs_given_zt(
                 pred=pred,
@@ -228,8 +228,8 @@ class MarkovBridge(Method):
         assert (E_s == torch.transpose(E_s, 1, 2)).all()
         assert (X_t.shape == X_s.shape) and (E_t.shape == E_s.shape)
 
-        out_one_hot = PlaceHolder(X=X_s, E=E_s, y=torch.zeros(y_t.shape[0], 0))
-        out_discrete = PlaceHolder(X=X_s, E=E_s, y=torch.zeros(y_t.shape[0], 0))
+        out_one_hot = GraphWrapper(X=X_s, E=E_s, y=torch.zeros(y_t.shape[0], 0))
+        out_discrete = GraphWrapper(X=X_s, E=E_s, y=torch.zeros(y_t.shape[0], 0))
 
         # Likelihood
         node_log_likelihood = torch.log(prob_X) + torch.log(pred_X)
@@ -308,7 +308,7 @@ class MarkovBridge(Method):
                 torch.zeros_like(p_E_T[..., 0]).long(),
                 num_classes=self.output_dim.edge_dim,
             ).float()
-            z_T = PlaceHolder(X_T_i, E_T_i)
+            z_T = GraphWrapper(X_T_i, E_T_i)
             prob_X_i, _ = self.compute_q_zs_given_q_zt(
                 z_t, z_T, node_mask, t
             )  # bs, n, d
@@ -323,7 +323,7 @@ class MarkovBridge(Method):
                 torch.ones_like(p_E_T[..., 0]).long() * i,
                 num_classes=self.output_dim.edge_dim,
             ).float()
-            z_T = PlaceHolder(X_T_i, E_T_i)
+            z_T = GraphWrapper(X_T_i, E_T_i)
             _, prob_E_i = self.compute_q_zs_given_q_zt(
                 z_t, z_T, node_mask, t
             )  # bs, n, n, d

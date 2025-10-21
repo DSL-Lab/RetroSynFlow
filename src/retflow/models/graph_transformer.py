@@ -1,6 +1,5 @@
 import math
 from dataclasses import dataclass
-from pathlib import Path
 
 import torch
 import torch.nn as nn
@@ -10,7 +9,7 @@ from torch.nn import functional as F
 from torch import Tensor
 
 from retflow.models.model import Model
-from retflow.retro_utils.place_holders import PlaceHolder, GraphModelLayerInfo
+from retflow.utils.wrappers import GraphWrapper, GraphModelLayerInfo
 from retflow.datasets.info import GraphDimensions
 
 
@@ -26,8 +25,6 @@ class GraphTransformer(Model):
         self,
         input_shape: GraphDimensions,
         output_shape: GraphDimensions,
-        reduce_output: bool,
-        checkpoint: Path | None = None,
     ) -> nn.Module:
         return _GraphTransformer(
             self.n_layers,
@@ -135,7 +132,7 @@ class _GraphTransformer(nn.Module):
 
         new_E = self.mlp_in_E(E)
         new_E = (new_E + new_E.transpose(1, 2)) / 2
-        after_in = PlaceHolder(X=self.mlp_in_X(X), E=new_E, y=self.mlp_in_y(y)).mask(
+        after_in = GraphWrapper(X=self.mlp_in_X(X), E=new_E, y=self.mlp_in_y(y)).mask(
             node_mask
         )
         X, E, y = after_in.X, after_in.E, after_in.y

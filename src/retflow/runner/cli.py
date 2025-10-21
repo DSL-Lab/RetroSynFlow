@@ -16,7 +16,7 @@ from retflow.runner.slurm import (
 )
 from retflow.experiment import Experiment
 from retflow.experiment_eval import ExperimentEvaluator
-from retflow.retro_utils.eval_helper import process_data_compute_metrics
+from retflow.utils.eval_helper import process_data_compute_metrics
 
 
 def cli_runner(

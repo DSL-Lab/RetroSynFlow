@@ -26,7 +26,6 @@ experiments_evals = [
     ExperimentEvaluator(
         experiment=experiment,
         test_method=test_method,
-        test_batch_size=32,
         examples_per_sample=100,
         checkpoint_name="model_epoch_300.pt",
         output_name=f"fk_steering_k=4_lmbda=2.0",

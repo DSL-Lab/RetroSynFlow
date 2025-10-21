@@ -10,7 +10,7 @@ import csv
 
 from rdkit import Chem
 
-from retflow.retro_utils import reactants_with_partial_atom_mapping
+from retflow.utils import reactants_with_partial_atom_mapping
 from retflow.datasets.info import DOWNLOAD_URL_TEMPLATE
 from retflow.datasets.info import RetrosynthesisInfo
 

@@ -8,10 +8,10 @@ import torch
 from retflow import config
 from retflow.optimizers.optimizer import Optimizer
 from retflow.problems.problem import Problem
-from retflow.retro_utils import (
+from retflow.utils import (
     ExtraFeatures,
     GraphModelWrapper,
-    PlaceHolder,
+    GraphWrapper,
     to_dense,
     top_k_accuracy,
     get_molecule_list,
@@ -112,7 +112,7 @@ class Retrosynthesis(Problem):
             )
 
             X, E = self.model_wrapper(noisy_graph, node_mask, product.clone(), t_float)
-            prediction = PlaceHolder(X, E, product.y).mask(node_mask)
+            prediction = GraphWrapper(X, E, product.y).mask(node_mask)
 
             fixed_nodes = (product.X[..., -1] == 0).unsqueeze(-1)
             modifiable_nodes = (product.X[..., -1] == 1).unsqueeze(-1)  # dummy nodes
@@ -194,7 +194,7 @@ class Retrosynthesis(Problem):
             )
 
             X, E = self.model_wrapper(noisy_graph, node_mask, product.clone(), t_float)
-            prediction = PlaceHolder(X, E, product.y).mask(node_mask)
+            prediction = GraphWrapper(X, E, product.y).mask(node_mask)
 
             fixed_nodes = (product.X[..., -1] == 0).unsqueeze(-1)
             modifiable_nodes = (product.X[..., -1] == 1).unsqueeze(-1)  # dummy nodes

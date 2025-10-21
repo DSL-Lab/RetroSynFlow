@@ -15,7 +15,7 @@ from rdkit import Chem
 from rdkit.Chem.rdmolops import GetAdjacencyMatrix
 
 from retflow import config
-from retflow.retro_utils.place_holders import PlaceHolder
+from retflow.utils.wrappers import GraphWrapper
 
 
 bond_dict = [
@@ -59,7 +59,7 @@ def to_dense(x, edge_index, edge_attr, batch):
     )
     E = encode_no_edge(E)
 
-    return PlaceHolder(X=X, E=E, y=None), node_mask
+    return GraphWrapper(X=X, E=E, y=None), node_mask
 
 
 def build_molecule(atom_types, edge_types, atom_decoder, return_n_dummy_atoms=False):

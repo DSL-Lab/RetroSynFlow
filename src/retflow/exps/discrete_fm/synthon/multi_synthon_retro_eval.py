@@ -5,7 +5,7 @@ from retflow.datasets import TorchDrugRetroDataset
 from retflow.methods import DiscreteFM, LinearTimeScheduler, UniformTimeSampler
 from retflow.problems import MultiSynthonRetrosynthesis
 from retflow.models import GraphTransformer
-from retflow.retro_utils import GraphModelLayerInfo
+from retflow.utils import GraphModelLayerInfo
 from retflow.runner import slurm_config, cli_runner
 from retflow.experiment_eval import ExperimentEvaluator
 
@@ -54,7 +54,6 @@ experiments_evals = [
     ExperimentEvaluator(
         experiment=exp,
         test_method=test_method,
-        test_batch_size=256,
         examples_per_sample=50,
         checkpoint_name="model_epoch_600.pt",
         output_name="default_linear_multi_synthon_retro_fixed2",

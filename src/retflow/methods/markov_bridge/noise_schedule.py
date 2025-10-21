@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 
-from retflow.retro_utils.place_holders import PlaceHolder
+from retflow.utils.wrappers import GraphWrapper
 
 
 class PredefinedNoiseSchedule(torch.nn.Module):
@@ -168,7 +168,7 @@ class InterpolationTransition:
         edge_mask = node_mask[:, None, :] & node_mask[:, :, None]
         q_e[~edge_mask] = torch.eye(q_e.shape[-1], device=device)
 
-        return PlaceHolder(X=q_x, E=q_e, y=y_T)
+        return GraphWrapper(X=q_x, E=q_e, y=y_T)
 
     def get_Qt_bar(self, alpha_bar_t, X_T, E_T, y_T, node_mask, device):
         """
@@ -209,7 +209,7 @@ class InterpolationTransition:
         edge_mask = node_mask[:, None, :] & node_mask[:, :, None]
         q_e[~edge_mask] = torch.eye(q_e.shape[-1], device=device)
 
-        return PlaceHolder(X=q_x, E=q_e, y=y_T)
+        return GraphWrapper(X=q_x, E=q_e, y=y_T)
 
 
 def clip_noise_schedule(alphas2, clip_value=0.001):

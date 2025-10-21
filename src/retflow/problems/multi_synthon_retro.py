@@ -11,14 +11,14 @@ from torch_geometric.data import Data, Batch
 from retflow import config
 from retflow.optimizers.optimizer import Optimizer
 from retflow.problems.problem import Problem
-from retflow.retro_utils import (
+from retflow.utils import (
     ExtraFeatures,
     GraphModelWrapper,
     build_molecule,
     to_dense,
     build_simple_molecule,
 )
-from retflow.retro_utils.data import (
+from retflow.utils.data import (
     build_graph_from_mol,
     compute_nodes_mapping,
     build_graph_from_mol_with_mapping,

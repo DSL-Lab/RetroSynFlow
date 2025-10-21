@@ -5,7 +5,7 @@ from tqdm import tqdm
 import torch
 import torch.nn.functional as F
 
-from retflow.retro_utils.place_holders import PlaceHolder
+from retflow.utils.wrappers import GraphWrapper
 from retflow.datasets.retro import RetrosynthesisInfo
 from retflow.models.model import Model
 from retflow.methods.method import Method
@@ -61,7 +61,7 @@ class DiscreteFM(Method):
         X_t = F.one_hot(sampled_t.X, num_classes=self.output_dim.node_dim)
         assert (X.shape == X_t.shape) and (E.shape == E_t.shape)
 
-        noisy_graph = PlaceHolder(X=X_t, E=E_t, y=y).type_as(X_t).mask(node_mask)
+        noisy_graph = GraphWrapper(X=X_t, E=E_t, y=y).type_as(X_t).mask(node_mask)
 
         return noisy_graph, node_mask, t.unsqueeze(-1)
 
@@ -108,9 +108,9 @@ class DiscreteFM(Method):
                 / self.edge_time_sched.kappa_prime(tb),
             )
 
-            noisy_graph = PlaceHolder(X, E, y)
+            noisy_graph = GraphWrapper(X, E, y)
             X_p, E_p = predictor(noisy_graph, node_mask, context, tb.unsqueeze(-1))
-            pred = PlaceHolder(X_p, E_p, y=initial_graph.y).mask(node_mask)
+            pred = GraphWrapper(X_p, E_p, y=initial_graph.y).mask(node_mask)
             X_ut = self._compute_node_vector_field(X, pred.X, tb)
             E_ut = self._compute_edge_vector_field(E, pred.E, tb)
 
@@ -137,7 +137,7 @@ class DiscreteFM(Method):
             assert (X_raw.shape == X.shape) and (E_raw.shape == E.shape)
 
             graph = (
-                PlaceHolder(X_raw, E_raw, y).mask(node_mask).type_as(initial_graph.X)
+                GraphWrapper(X_raw, E_raw, y).mask(node_mask).type_as(initial_graph.X)
             )
 
             graph.X = graph.X * modifiable_nodes + initial_graph.X * fixed_nodes
@@ -149,7 +149,7 @@ class DiscreteFM(Method):
         pbar.update(hb_node[0].item())
         pbar.close()
 
-        final_graph = PlaceHolder(X, E, y)
+        final_graph = GraphWrapper(X, E, y)
         final_graph = final_graph.mask(node_mask, collapse=True)
         X, E, y = final_graph.X, final_graph.E, final_graph.y
 

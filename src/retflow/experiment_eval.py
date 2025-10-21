@@ -5,14 +5,13 @@ from dataclasses import dataclass
 
 from retflow.methods.method import Method
 from retflow.experiment import Experiment
-from retflow.retro_utils.eval_helper import process_data_compute_metrics
+from retflow.utils.eval_helper import process_data_compute_metrics
 
 
 @dataclass
 class ExperimentEvaluator:
     experiment: Experiment
     test_method: Method
-    test_batch_size: int
     examples_per_sample: int
     checkpoint_name: str | None = None
     output_name: str | None = None

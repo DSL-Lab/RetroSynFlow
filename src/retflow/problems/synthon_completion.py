@@ -4,8 +4,8 @@ import torch
 from tqdm import tqdm
 
 from retflow import config
-from retflow.retro_utils import (
-    PlaceHolder,
+from retflow.utils import (
+    GraphWrapper,
     to_dense,
     get_molecule_list,
     get_molecule_smi_list,
@@ -81,7 +81,7 @@ class SynthonCompletion(Retrosynthesis):
                 context = synthons.clone()
 
             X, E = self.model_wrapper(noisy_graph, node_mask, context, t_float)
-            prediction = PlaceHolder(X, E, synthons.y).mask(node_mask)
+            prediction = GraphWrapper(X, E, synthons.y).mask(node_mask)
 
             fixed_nodes = (synthons.X[..., -1] == 0).unsqueeze(-1)
             modifiable_nodes = (synthons.X[..., -1] == 1).unsqueeze(-1)  # dummy nodes
@@ -178,7 +178,7 @@ class SynthonCompletion(Retrosynthesis):
                 context = synthons.clone()
 
             X, E = self.model_wrapper(noisy_graph, node_mask, context, t_float)
-            prediction = PlaceHolder(X, E, synthons.y).mask(node_mask)
+            prediction = GraphWrapper(X, E, synthons.y).mask(node_mask)
 
             fixed_nodes = (synthons.X[..., -1] == 0).unsqueeze(-1)
             modifiable_nodes = (synthons.X[..., -1] == 1).unsqueeze(-1)  # dummy nodes

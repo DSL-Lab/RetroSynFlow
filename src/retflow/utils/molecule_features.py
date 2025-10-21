@@ -1,5 +1,5 @@
 import torch
-from retflow.retro_utils.place_holders import PlaceHolder
+from retflow.utils.wrappers import GraphWrapper
 
 USPTO_VALENCIES = [5, 4, 6, 6, 7, 1, 3, 7, 5, 4, 7, 4, 2, 4, 2, 6, 0]
 
@@ -37,7 +37,7 @@ class ExtraMolecularFeatures:
 
         extra_edge_attr = torch.zeros((*E.shape[:-1], 0)).type_as(E)
 
-        return PlaceHolder(
+        return GraphWrapper(
             X=torch.cat((charge, valency), dim=-1), E=extra_edge_attr, y=weight
         )
 

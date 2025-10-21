@@ -3,7 +3,7 @@ from typing import ClassVar, Dict, List
 from rdkit import Chem
 import torch
 
-from retflow.retro_utils import GraphDimensions
+from retflow.utils import GraphDimensions
 
 SYNTHON_NAMES = [
     "MultiSynthonUSPTO",

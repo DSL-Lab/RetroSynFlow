@@ -30,7 +30,6 @@ experiments_evals = [
     ExperimentEvaluator(
         experiment=experiment,
         test_method=test_method,
-        test_batch_size=32,
         examples_per_sample=50,
         checkpoint_name="model_epoch_300.pt",
         output_name=f"fk_steering_k={test_method.num_particles}_lmbda=2.0_50_reactants",

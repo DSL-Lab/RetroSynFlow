@@ -10,7 +10,7 @@ import pickle
 import torch
 from torch import distributed as dist
 
-from retflow.retro_utils.data import smi_tokenizer, get_forward_model
+from retflow.utils.data import smi_tokenizer, get_forward_model
 from retflow import config
 
 

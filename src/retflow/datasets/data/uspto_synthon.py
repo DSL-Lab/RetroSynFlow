@@ -9,7 +9,7 @@ import torch
 from torch_geometric.data import Data, InMemoryDataset
 from torchdrug.data import Molecule
 
-from retflow.retro_utils.data import (
+from retflow.utils.data import (
     compute_nodes_mapping,
     build_graph_from_mol,
     build_graph_from_mol_with_mapping,
