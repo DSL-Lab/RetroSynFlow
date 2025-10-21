@@ -1,7 +1,9 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+
 from torch.optim import Optimizer
-from torch.optim.lr_scheduler import CosineAnnealingLR, _LRScheduler, ConstantLR
+from torch.optim.lr_scheduler import (ConstantLR, CosineAnnealingLR,
+                                      _LRScheduler)
 
 
 @dataclass

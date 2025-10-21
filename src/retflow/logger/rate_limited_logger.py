@@ -1,5 +1,5 @@
-import time
 import logging
+import time
 from typing import Optional
 
 from retflow.config import get_logger

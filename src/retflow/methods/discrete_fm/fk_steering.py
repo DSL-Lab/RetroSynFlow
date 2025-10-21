@@ -1,93 +1,14 @@
 from dataclasses import dataclass
-from tqdm import tqdm
-from abc import ABC, abstractmethod
 
 import torch
 import torch.nn.functional as F
+from tqdm import tqdm
 
-from retflow.utils.wrappers import GraphWrapper
 from retflow.datasets.retro import RetrosynthesisInfo
 from retflow.methods.discrete_fm.basic import DiscreteFM
-from retflow.methods.method_utils import sample_discrete_features, pad_t_like_x
+from retflow.methods.method_utils import pad_t_like_x, sample_discrete_features
 from retflow.utils.data import build_molecule
-from retflow.datasets.retro import RetrosynthesisInfo
-from retflow.utils import get_forward_model, smi_tokenizer
-from rdkit import Chem
-from rdkit.Chem import QED
-
-
-@dataclass
-class Reward(ABC):
-    @abstractmethod
-    def initialize_reward(self):
-        pass
-
-    @abstractmethod
-    def compute_reward(self, x1_smiles, prod_smiles, device):
-        pass
-
-
-@dataclass
-class QEDReward(Reward):
-    def initialize_reward(self):
-        pass
-
-    def compute_reward(self, x1_mols, prod_mols, device):
-        rewards = []
-        for x1_mol in x1_mols:
-            try:
-                score = QED.qed(x1_mol)
-            except Chem.rdchem.MolSanitizeException:
-                score = -1.0
-            rewards.append(score)
-
-        return torch.tensor(rewards).to(device)
-
-
-@dataclass
-class ForwardSynthesisReward(Reward):
-    n_best: int = 5
-
-    def initialize_reward(self):
-        self.forward_translator = get_forward_model(self.n_best)
-
-    def compute_reward(self, x1_smiles, prod_smiles, device):
-        tokenized_smiles = [smi_tokenizer(x1.strip()) for x1 in x1_smiles]
-
-        _, pred_products = self.forward_translator.translate(
-            src_data_iter=tokenized_smiles,
-            batch_size=256,
-            attn_debug=False,
-        )
-        rewards = []
-        for i, predictions in enumerate(pred_products):
-            preds = ["".join(p.split()) for p in predictions]
-            reward = preds.count(prod_smiles[i]) / self.n_best
-            rewards.append(reward)
-        return torch.tensor(rewards).to(device)
-
-
-@dataclass
-class ForwardSynthesisBinaryReward(Reward):
-    n_best: int = 5
-
-    def initialize_reward(self):
-        self.forward_translator = get_forward_model(self.n_best)
-
-    def compute_reward(self, x1_smiles, prod_smiles, device):
-        tokenized_smiles = [smi_tokenizer(x1.strip()) for x1 in x1_smiles]
-
-        _, pred_products = self.forward_translator.translate(
-            src_data_iter=tokenized_smiles,
-            batch_size=256,
-            attn_debug=False,
-        )
-        rewards = []
-        for i, predictions in enumerate(pred_products):
-            preds = ["".join(p.split()) for p in predictions]
-            reward = 1 if prod_smiles[i] in preds else 0
-            rewards.append(reward)
-        return torch.tensor(rewards).to(device)
+from retflow.utils.wrappers import GraphWrapper
 
 
 @dataclass

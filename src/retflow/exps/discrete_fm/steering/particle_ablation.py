@@ -1,12 +1,9 @@
-from retflow.methods import (
-    FKSteeringDiscreteFM,
-    LinearTimeScheduler,
-    UniformTimeSampler,
-)
-from retflow.runner import slurm_config, cli_runner
 from retflow.experiment_eval import ExperimentEvaluator
 from retflow.exps.discrete_fm.product.product_baseline import experiment
+from retflow.methods import (FKSteeringDiscreteFM, LinearTimeScheduler,
+                             UniformTimeSampler)
 from retflow.methods.discrete_fm.fk_steering import ForwardSynthesisReward
+from retflow.runner import cli_runner, slurm_config
 
 num_particles = [8]  # , [2, 4, 6, 8]
 

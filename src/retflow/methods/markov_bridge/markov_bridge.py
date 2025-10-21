@@ -1,19 +1,18 @@
 from dataclasses import dataclass
 from typing import Callable, Tuple
+
 import torch
 import torch.nn.functional as F
 from tqdm import tqdm
 
 from retflow.datasets.retro import RetrosynthesisInfo
+from retflow.methods.loss_functions import TrainLossDiscrete, TrainLossVLB
+from retflow.methods.markov_bridge.noise_schedule import (
+    InterpolationTransition, PredefinedNoiseScheduleDiscrete)
+from retflow.methods.method import Method
+from retflow.methods.method_utils import sample_discrete_features
 from retflow.models.model import Model
 from retflow.utils.wrappers import GraphWrapper
-from retflow.methods.method import Method
-from retflow.methods.loss_functions import TrainLossVLB, TrainLossDiscrete
-from retflow.methods.markov_bridge.noise_schedule import (
-    PredefinedNoiseScheduleDiscrete,
-    InterpolationTransition,
-)
-from retflow.methods.method_utils import sample_discrete_features
 
 
 @dataclass

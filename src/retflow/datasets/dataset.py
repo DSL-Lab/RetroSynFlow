@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
-from typing import Tuple
 from dataclasses import dataclass
+from typing import Tuple
 
 from torch.utils.data import DataLoader
+
 from retflow.datasets.info import RetrosynthesisInfo
 from retflow.runner import DistributedHelper
 

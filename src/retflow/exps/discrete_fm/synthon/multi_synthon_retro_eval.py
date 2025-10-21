@@ -1,14 +1,13 @@
 from retflow import Experiment
+from retflow.datasets import TorchDrugRetroDataset
+from retflow.experiment_eval import ExperimentEvaluator
+from retflow.methods import DiscreteFM, LinearTimeScheduler, UniformTimeSampler
+from retflow.models import GraphTransformer
 from retflow.optimizers.optimizer import AdamW
 from retflow.optimizers.schedulers import ConsLR
-from retflow.datasets import TorchDrugRetroDataset
-from retflow.methods import DiscreteFM, LinearTimeScheduler, UniformTimeSampler
 from retflow.problems import MultiSynthonRetrosynthesis
-from retflow.models import GraphTransformer
+from retflow.runner import cli_runner, slurm_config
 from retflow.utils import GraphModelLayerInfo
-from retflow.runner import slurm_config, cli_runner
-from retflow.experiment_eval import ExperimentEvaluator
-
 
 model = GraphTransformer(
     n_layers=5,

@@ -1,13 +1,14 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Dict
-from retflow.models import Model
-from retflow.datasets import Dataset
-from retflow.optimizers import Optimizer
-from retflow.methods import Method
-from retflow.runner.distributed_helper import DistributedHelper
 
 import torch
+
+from retflow.datasets import Dataset
+from retflow.methods import Method
+from retflow.models import Model
+from retflow.optimizers import Optimizer
+from retflow.runner.distributed_helper import DistributedHelper
 
 
 @dataclass

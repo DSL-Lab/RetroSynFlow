@@ -1,6 +1,6 @@
 from retflow.experiment_eval import ExperimentEvaluator
 from retflow.exps.markov_bridge.baseline import experiment
-from retflow.runner import slurm_config, cli_runner
+from retflow.runner import cli_runner, slurm_config
 
 experiments_evals = [
     ExperimentEvaluator(

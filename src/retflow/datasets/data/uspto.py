@@ -1,19 +1,15 @@
-from typing import Dict, Sequence, Any
 import os
 import subprocess
-import pandas as pd
+from typing import Any, Dict, Sequence
 
-from rdkit import Chem
+import pandas as pd
 import torch
+from rdkit import Chem
 from torch_geometric.data import Data, InMemoryDataset
-from retflow.utils.data import (
-    build_graph_from_mol_with_mapping,
-    compute_nodes_order_mapping,
-)
-from retflow.datasets.info import (
-    RetrosynthesisInfo,
-    DOWNLOAD_URL_TEMPLATE,
-)
+
+from retflow.datasets.info import DOWNLOAD_URL_TEMPLATE, RetrosynthesisInfo
+from retflow.utils.data import (build_graph_from_mol_with_mapping,
+                                compute_nodes_order_mapping)
 
 
 class USPTO(InMemoryDataset):

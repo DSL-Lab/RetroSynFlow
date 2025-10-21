@@ -1,8 +1,7 @@
-from retflow.methods import DiscreteFM, LinearTimeScheduler, UniformTimeSampler
-from retflow.runner import slurm_config, cli_runner
-from retflow.exps.discrete_fm.synthon.multi_synthon import experiment
 from retflow.experiment_eval import ExperimentEvaluator
-
+from retflow.exps.discrete_fm.synthon.multi_synthon import experiment
+from retflow.methods import DiscreteFM, LinearTimeScheduler, UniformTimeSampler
+from retflow.runner import cli_runner, slurm_config
 
 test_method = DiscreteFM(
     steps=50,

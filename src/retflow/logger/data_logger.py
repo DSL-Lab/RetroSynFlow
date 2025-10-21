@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import copy
-import os
 import json
+import os
 import subprocess
-import wandb
 from pathlib import Path
 from typing import Dict, List
+
+import wandb
 
 from retflow import config
 from retflow.config import get_logger

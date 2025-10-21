@@ -1,8 +1,10 @@
 from typing import List
+
+import pandas as pd
 import wandb
 import wandb.apis
 from wandb.apis.public import Run
-import pandas as pd
+
 from retflow import config
 from retflow.config import get_logger
 

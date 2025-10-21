@@ -1,26 +1,18 @@
-from dataclasses import dataclass
-from typing import Tuple
 import copy
 import os
+from dataclasses import dataclass
+from typing import Tuple
 
 import torch
-from torch_geometric.loader import DataLoader
 from torch.utils.data.distributed import DistributedSampler
+from torch_geometric.loader import DataLoader
 
 from retflow import config
-from retflow.datasets.dataset import Dataset
-
-from retflow.utils import (
-    ExtraFeatures,
-    GraphDimensions,
-    to_dense,
-)
 from retflow.datasets.data.uspto import USPTO
-from retflow.datasets.info import (
-    NAMES,
-    RetrosynthesisInfo,
-)
+from retflow.datasets.dataset import Dataset
+from retflow.datasets.info import NAMES, RetrosynthesisInfo
 from retflow.runner import DistributedHelper
+from retflow.utils import ExtraFeatures, GraphDimensions, to_dense
 
 
 @dataclass

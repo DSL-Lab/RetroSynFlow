@@ -1,14 +1,14 @@
+import os
 from dataclasses import dataclass
 from typing import List, Tuple
-import os
 
 from torch.utils.data.distributed import DistributedSampler
 from torchdrug.data import DataLoader
 
 from retflow import config
+from retflow.datasets.data.uspto_drug import _TorchDrugUSPTO
 from retflow.datasets.dataset import Dataset
 from retflow.datasets.info import RetrosynthesisInfo
-from retflow.datasets.data.uspto_drug import _TorchDrugUSPTO
 from retflow.datasets.synthon import SynthonDataset
 from retflow.runner import DistributedHelper
 

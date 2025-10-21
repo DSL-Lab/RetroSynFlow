@@ -1,22 +1,19 @@
-import re
 import argparse
-import numpy as np
+import re
 
+import numpy as np
 import torch
 import torch.nn.functional as F
 import torch_geometric
-from torch_scatter import scatter_max
-from torchdrug.data import Molecule
-from torch_geometric.utils import to_dense_adj, to_dense_batch
-
 from onmt.translate.translator import build_translator
-
 from rdkit import Chem
 from rdkit.Chem.rdmolops import GetAdjacencyMatrix
+from torch_geometric.utils import to_dense_adj, to_dense_batch
+from torch_scatter import scatter_max
+from torchdrug.data import Molecule
 
 from retflow import config
 from retflow.utils.wrappers import GraphWrapper
-
 
 bond_dict = [
     None,

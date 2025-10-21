@@ -1,21 +1,17 @@
+import argparse
 import os
 import sys
-import argparse
 from pathlib import Path
 from typing import List
-from retflow.runner.distributed_helper import DistributedHelper
-from retflow.runner.wandb_integration import (
-    get_wandb_runs_for_group,
-    get_successful_ids_and_runs,
-    download_run_data,
-)
-from retflow.runner.slurm import (
-    make_jobarray_file_contents,
-    make_jobarray_file_contents_ddp,
-    SlurmConfig,
-)
+
 from retflow.experiment import Experiment
 from retflow.experiment_eval import ExperimentEvaluator
+from retflow.runner.distributed_helper import DistributedHelper
+from retflow.runner.slurm import (SlurmConfig, make_jobarray_file_contents,
+                                  make_jobarray_file_contents_ddp)
+from retflow.runner.wandb_integration import (download_run_data,
+                                              get_successful_ids_and_runs,
+                                              get_wandb_runs_for_group)
 from retflow.utils.eval_helper import process_data_compute_metrics
 
 

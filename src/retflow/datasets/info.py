@@ -1,7 +1,8 @@
 from dataclasses import dataclass, field
 from typing import ClassVar, Dict, List
-from rdkit import Chem
+
 import torch
+from rdkit import Chem
 
 from retflow.utils import GraphDimensions
 

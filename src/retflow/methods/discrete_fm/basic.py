@@ -1,18 +1,18 @@
 from dataclasses import dataclass
 from typing import Callable
-from tqdm import tqdm
 
 import torch
 import torch.nn.functional as F
+from tqdm import tqdm
 
-from retflow.utils.wrappers import GraphWrapper
 from retflow.datasets.retro import RetrosynthesisInfo
-from retflow.models.model import Model
-from retflow.methods.method import Method
 from retflow.methods.discrete_fm.scheduler import TimeScheduler
-from retflow.methods.time_sampler import TimeSampler
 from retflow.methods.loss_functions import TrainLossDiscrete
-from retflow.methods.method_utils import sample_discrete_features, pad_t_like_x
+from retflow.methods.method import Method
+from retflow.methods.method_utils import pad_t_like_x, sample_discrete_features
+from retflow.methods.time_sampler import TimeSampler
+from retflow.models.model import Model
+from retflow.utils.wrappers import GraphWrapper
 
 
 @dataclass

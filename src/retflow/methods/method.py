@@ -2,11 +2,11 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Callable, Dict
 
-from torch.nn import Module
 from torch import Tensor
+from torch.nn import Module
 
-from retflow.models.model import Model
 from retflow.datasets.retro import RetrosynthesisInfo
+from retflow.models.model import Model
 
 
 @dataclass

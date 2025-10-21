@@ -4,15 +4,10 @@ import torch
 from tqdm import tqdm
 
 from retflow import config
-from retflow.utils import (
-    GraphWrapper,
-    to_dense,
-    get_molecule_list,
-    get_molecule_smi_list,
-    top_k_accuracy
-)
-from retflow.runner import DistributedHelper
 from retflow.problems.retrosynthesis import Retrosynthesis
+from retflow.runner import DistributedHelper
+from retflow.utils import (GraphWrapper, get_molecule_list,
+                           get_molecule_smi_list, to_dense, top_k_accuracy)
 
 
 @dataclass

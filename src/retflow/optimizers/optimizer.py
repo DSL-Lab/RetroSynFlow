@@ -1,8 +1,10 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+
 import torch
 from torch import nn
 from torch.optim.optimizer import Optimizer as Optim
+
 from retflow.optimizers.schedulers import LearningRateSched
 
 

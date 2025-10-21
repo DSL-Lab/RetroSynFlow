@@ -1,18 +1,17 @@
-from pathlib import Path
-from torchdrug.datasets import USPTO50k
-from torchdrug import utils
-from torchdrug.data import Molecule
-from collections import defaultdict
-from tqdm import tqdm
-import os
-import math
 import csv
+import math
+import os
+from collections import defaultdict
+from pathlib import Path
 
 from rdkit import Chem
+from torchdrug import utils
+from torchdrug.data import Molecule
+from torchdrug.datasets import USPTO50k
+from tqdm import tqdm
 
+from retflow.datasets.info import DOWNLOAD_URL_TEMPLATE, RetrosynthesisInfo
 from retflow.utils import reactants_with_partial_atom_mapping
-from retflow.datasets.info import DOWNLOAD_URL_TEMPLATE
-from retflow.datasets.info import RetrosynthesisInfo
 
 
 class _TorchDrugUSPTO(USPTO50k):

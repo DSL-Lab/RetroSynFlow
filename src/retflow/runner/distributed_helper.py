@@ -3,7 +3,8 @@ import os
 from datetime import timedelta
 
 import torch
-from torch import distributed as dist, nn as nn
+from torch import distributed as dist
+from torch import nn as nn
 from torch.nn.parallel import DistributedDataParallel as DDP
 
 from retflow import config

@@ -4,27 +4,20 @@ from pathlib import Path
 from typing import List
 
 import torch
-from torchdrug import models, tasks, utils, layers
+from rdkit import Chem
+from torch_geometric.data import Batch, Data
+from torchdrug import layers, models, tasks, utils
 from torchdrug.core import Registry as R
-from torch_geometric.data import Data, Batch
 
 from retflow import config
 from retflow.optimizers.optimizer import Optimizer
 from retflow.problems.problem import Problem
-from retflow.utils import (
-    ExtraFeatures,
-    GraphModelWrapper,
-    build_molecule,
-    to_dense,
-    build_simple_molecule,
-)
-from retflow.utils.data import (
-    build_graph_from_mol,
-    compute_nodes_mapping,
-    build_graph_from_mol_with_mapping,
-)
-from rdkit import Chem
 from retflow.runner import DistributedHelper
+from retflow.utils import (ExtraFeatures, GraphModelWrapper, build_molecule,
+                           build_simple_molecule, to_dense)
+from retflow.utils.data import (build_graph_from_mol,
+                                build_graph_from_mol_with_mapping,
+                                compute_nodes_mapping)
 
 
 @dataclass

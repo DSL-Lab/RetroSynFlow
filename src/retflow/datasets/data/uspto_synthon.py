@@ -1,23 +1,20 @@
-from typing import Dict
 import os
 import subprocess
-import pandas as pd
-from tqdm import tqdm
+from typing import Dict
 
-from rdkit import Chem
+import pandas as pd
 import torch
+from rdkit import Chem
 from torch_geometric.data import Data, InMemoryDataset
 from torchdrug.data import Molecule
+from tqdm import tqdm
 
-from retflow.utils.data import (
-    compute_nodes_mapping,
-    build_graph_from_mol,
-    build_graph_from_mol_with_mapping,
-    get_synthons,
-    reactants_with_partial_atom_mapping,
-)
 from retflow.datasets.data.uspto import to_list
-from retflow.datasets.info import RetrosynthesisInfo, DOWNLOAD_URL_TEMPLATE
+from retflow.datasets.info import DOWNLOAD_URL_TEMPLATE, RetrosynthesisInfo
+from retflow.utils.data import (build_graph_from_mol,
+                                build_graph_from_mol_with_mapping,
+                                compute_nodes_mapping, get_synthons,
+                                reactants_with_partial_atom_mapping)
 
 
 class MultiSynthonUSPTO(InMemoryDataset):

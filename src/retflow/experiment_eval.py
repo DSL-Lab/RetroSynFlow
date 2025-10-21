@@ -1,10 +1,10 @@
-import os
 import hashlib
+import os
 import pickle
 from dataclasses import dataclass
 
-from retflow.methods.method import Method
 from retflow.experiment import Experiment
+from retflow.methods.method import Method
 from retflow.utils.eval_helper import process_data_compute_metrics
 
 

@@ -1,4 +1,4 @@
+from retflow.problems.multi_synthon_retro import MultiSynthonRetrosynthesis
 from retflow.problems.problem import Problem
 from retflow.problems.retrosynthesis import Retrosynthesis
 from retflow.problems.synthon_completion import SynthonCompletion
-from retflow.problems.multi_synthon_retro import MultiSynthonRetrosynthesis

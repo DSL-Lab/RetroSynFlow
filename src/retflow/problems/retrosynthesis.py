@@ -1,23 +1,17 @@
 import os
 from dataclasses import dataclass
-from tqdm import tqdm
 from pathlib import Path
 
 import torch
+from tqdm import tqdm
 
 from retflow import config
 from retflow.optimizers.optimizer import Optimizer
 from retflow.problems.problem import Problem
-from retflow.utils import (
-    ExtraFeatures,
-    GraphModelWrapper,
-    GraphWrapper,
-    to_dense,
-    top_k_accuracy,
-    get_molecule_list,
-    get_molecule_smi_list,
-)
 from retflow.runner import DistributedHelper
+from retflow.utils import (ExtraFeatures, GraphModelWrapper, GraphWrapper,
+                           get_molecule_list, get_molecule_smi_list, to_dense,
+                           top_k_accuracy)
 
 
 @dataclass

@@ -3,14 +3,13 @@ from dataclasses import dataclass
 
 import torch
 import torch.nn as nn
-
-from torch.nn.modules.normalization import LayerNorm
-from torch.nn import functional as F
 from torch import Tensor
+from torch.nn import functional as F
+from torch.nn.modules.normalization import LayerNorm
 
-from retflow.models.model import Model
-from retflow.utils.wrappers import GraphWrapper, GraphModelLayerInfo
 from retflow.datasets.info import GraphDimensions
+from retflow.models.model import Model
+from retflow.utils.wrappers import GraphModelLayerInfo, GraphWrapper
 
 
 @dataclass

@@ -1,12 +1,12 @@
 from retflow import Experiment
-from retflow.optimizers.optimizer import AdamW
-from retflow.optimizers.schedulers import ConsLR
 from retflow.datasets import RetroDataset
 from retflow.methods import MarkovBridge
-from retflow.problems import Retrosynthesis
 from retflow.models import GraphTransformer
+from retflow.optimizers.optimizer import AdamW
+from retflow.optimizers.schedulers import ConsLR
+from retflow.problems import Retrosynthesis
+from retflow.runner import cli_runner, slurm_config
 from retflow.utils import GraphModelLayerInfo
-from retflow.runner import slurm_config, cli_runner
 
 model = GraphTransformer(
     n_layers=5,

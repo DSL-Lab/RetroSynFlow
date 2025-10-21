@@ -4,10 +4,10 @@ import socket
 from logging import Logger
 from pathlib import Path
 from typing import Optional
-import torch
+
 import rdkit.rdBase as rkrb
 import rdkit.RDLogger as rkl
-
+import torch
 
 ENV_VAR_WORKSPACE = "RETRO_WORKSPACE"
 ENV_VAR_LOGGING = "RETRO_CONSOLE_LOGGING_LEVEL"

@@ -1,19 +1,18 @@
 import hashlib
 import random
-import torch
-import numpy as np
 import traceback
-from pathlib import Path
 from dataclasses import dataclass
+from pathlib import Path
 
+import numpy as np
+import torch
 from torch import distributed as dist
 
 from retflow import config
-from retflow.logger.data_logger import DataLogger
 from retflow.logger.asdict_with_classes import asdict_with_class
-from retflow.problems.problem import Problem
+from retflow.logger.data_logger import DataLogger
 from retflow.optimizers.optimizer import Optimizer
-
+from retflow.problems.problem import Problem
 from retflow.runner.distributed_helper import DistributedHelper
 
 

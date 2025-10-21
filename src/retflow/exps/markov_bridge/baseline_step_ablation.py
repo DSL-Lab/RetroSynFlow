@@ -1,7 +1,7 @@
-from retflow.methods import MarkovBridge
 from retflow.experiment_eval import ExperimentEvaluator
 from retflow.exps.markov_bridge.baseline import experiment
-from retflow.runner import slurm_config, cli_runner
+from retflow.methods import MarkovBridge
+from retflow.runner import cli_runner, slurm_config
 
 steps = [5, 10, 20, 25, 50, 100]
 

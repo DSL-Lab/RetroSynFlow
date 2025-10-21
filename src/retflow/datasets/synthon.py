@@ -1,23 +1,16 @@
+import copy
 from dataclasses import dataclass
 from typing import Tuple
-import copy
 
 from torch_geometric.loader import DataLoader
 
 from retflow import config
-
-from retflow.datasets.data.uspto_synthon import (
-    MultiSynthonUSPTO,
-    MultiSynthonProductUSPTO,
-)
-
-from retflow.datasets.info import (
-    SYNTHON_NAMES,
-    RetrosynthesisInfo,
-)
-from retflow.utils import to_dense, ExtraMolecularFeatures
+from retflow.datasets.data.uspto_synthon import (MultiSynthonProductUSPTO,
+                                                 MultiSynthonUSPTO)
+from retflow.datasets.info import SYNTHON_NAMES, RetrosynthesisInfo
 from retflow.datasets.retro import RetroDataset
 from retflow.runner import DistributedHelper
+from retflow.utils import ExtraMolecularFeatures, to_dense
 
 
 @dataclass
