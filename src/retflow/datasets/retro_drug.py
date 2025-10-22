@@ -1,8 +1,7 @@
 import os
 from dataclasses import dataclass
-from typing import List, Tuple
+from typing import Tuple
 
-from torch.utils.data.distributed import DistributedSampler
 from torchdrug.data import DataLoader
 
 from retflow import config
@@ -70,40 +69,4 @@ class TorchDrugRetroDataset(Dataset):
         return test_loader, self.info
 
 
-    def _get_train_and_val_loaders(
-        self, train_dataset, val_dataset, dist_helper: DistributedHelper | None = None
-    ):
-        if dist_helper is not None:
-            batch_size_per_gpu = max(
-                1, self.batch_size // dist_helper.get_ddp_status()[1]["WORLD_SIZE"]
-            )
-            train_loader = DataLoader(
-                dataset=train_dataset,
-                sampler=DistributedSampler(train_dataset, shuffle=True),
-                batch_size=batch_size_per_gpu,
-                pin_memory=True,
-                num_workers=min(6, os.cpu_count()),
-            )
 
-            val_loader = DataLoader(
-                dataset=val_dataset,
-                sampler=DistributedSampler(val_dataset, shuffle=False),
-                batch_size=batch_size_per_gpu,
-                pin_memory=True,
-                num_workers=min(6, os.cpu_count()),
-            )
-        else:
-            train_loader = DataLoader(
-                train_dataset,
-                batch_size=self.batch_size,
-                shuffle=True,
-                num_workers=min(6, os.cpu_count()),
-            )
-            val_loader = DataLoader(
-                val_dataset,
-                batch_size=self.batch_size,
-                shuffle=False,
-                num_workers=min(6, os.cpu_count()),
-            )
-
-        return train_loader, val_loader

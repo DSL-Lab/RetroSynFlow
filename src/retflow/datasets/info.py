@@ -1,11 +1,11 @@
 from dataclasses import dataclass, field
 from typing import ClassVar, Dict, List
 
-import torch
 from rdkit import Chem
 
 from retflow.utils import GraphDimensions
 
+# NAMES NOT USED, ONLY FOR REFERENCE/DEBUGGING
 SYNTHON_NAMES = [
     "MultiSynthonUSPTO",
     "MultiSynthonProductUSPTO",
@@ -114,11 +114,6 @@ USPTO_ATOM_WEIGHTS: Dict[int, float] = {
 class RetrosynthesisInfo:
     input_dim: GraphDimensions
     output_dim: GraphDimensions
-    n_nodes_dist: torch.Tensor
-    node_types_dist: torch.Tensor
-    edge_types_dist: torch.Tensor
-    valency_dist: torch.Tensor
-    dummy_nodes_dist: torch.Tensor
     max_n_nodes: int
     remove_h: bool = True
     max_weight: int = 1000

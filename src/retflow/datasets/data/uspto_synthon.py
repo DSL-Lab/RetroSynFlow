@@ -17,7 +17,7 @@ from retflow.utils.data import (build_graph_from_mol,
                                 reactants_with_partial_atom_mapping)
 
 
-class MultiSynthonUSPTO(InMemoryDataset):
+class SynthonUSPTO(InMemoryDataset):
     def __init__(self, split, root, download_and_process=False, swap=False):
         self.split = split
 
@@ -64,134 +64,6 @@ class MultiSynthonUSPTO(InMemoryDataset):
         if self.download_and_process:
             self._process_data()
 
-    def _process_data(self):
-        table = pd.read_csv(self.split_paths[self.file_idx])
-        data_list = []
-        for i, reaction_smiles in tqdm(
-            enumerate(table["reactants>reagents>production"].values)
-        ):
-            reactants_smi, _, product_smi = reaction_smiles.split(">")
-            rmol = Chem.MolFromSmiles(reactants_smi)
-            pmol = Chem.MolFromSmiles(product_smi)
-
-            reactants = Molecule.from_molecule(rmol, atom_feature="synthon_completion")
-            product = Molecule.from_molecule(pmol, atom_feature="synthon_completion")
-
-            reactants.bond_stereo[:] = 0
-            product.bond_stereo[:] = 0
-            reactants = reactants_with_partial_atom_mapping(
-                reactants, product, atom_feature="synthon_completion"
-            )
-            reactants, synthons = get_synthons(reactants, product)
-
-            full_synthons_smi = ".".join([s.to_smiles() for s in synthons])
-            synthons_mol = Chem.MolFromSmiles(full_synthons_smi, sanitize=False)
-
-            r_num_nodes = rmol.GetNumAtoms()
-            s_num_nodes = synthons_mol.GetNumAtoms()
-            assert s_num_nodes <= r_num_nodes
-            assert s_num_nodes <= pmol.GetNumAtoms()
-            new_r_num_nodes = s_num_nodes + RetrosynthesisInfo.max_n_dummy_nodes
-
-            if r_num_nodes > new_r_num_nodes:
-                if self.split in ["train", "val"]:
-                    continue
-                else:
-                    reactants_smi, synthons_smi = "C", "C"
-                    rmol = Chem.MolFromSmiles(reactants_smi)
-                    synthons_mol = Chem.MolFromSmiles(synthons_smi)
-                    s_num_nodes = synthons_mol.GetNumAtoms()
-                    new_r_num_nodes = s_num_nodes + RetrosynthesisInfo.max_n_dummy_nodes
-
-            r_num_nodes = new_r_num_nodes
-            try:
-                mapping = compute_nodes_mapping(rmol)
-                r_x, r_edge_index, r_edge_attr = build_graph_from_mol(
-                    rmol,
-                    r_num_nodes,
-                    types=RetrosynthesisInfo.atom_encoder,
-                    bonds=RetrosynthesisInfo.bonds,
-                )
-                s_x, s_edge_index, s_edge_attr = build_graph_from_mol_with_mapping(
-                    synthons_mol,
-                    mapping,
-                    r_num_nodes,
-                    types=RetrosynthesisInfo.atom_encoder,
-                    bonds=RetrosynthesisInfo.bonds,
-                )
-            except Exception as e:
-                continue
-
-            if self.split in ["train", "val"]:
-                assert len(s_x) == len(r_x)
-
-            synthon_mask = ~(s_x[:, -1].bool()).squeeze()
-            if len(r_x) == len(s_x) and not torch.allclose(
-                r_x[synthon_mask], s_x[synthon_mask]
-            ):
-                continue
-
-            if self.split == "train" and len(s_edge_attr) == 0:
-                continue
-
-            # Shuffle nodes to avoid leaking
-            if len(s_x) == len(r_x):
-                new2old_idx = torch.randperm(r_num_nodes).long()
-                old2new_idx = torch.empty_like(new2old_idx)
-                old2new_idx[new2old_idx] = torch.arange(r_num_nodes)
-
-                r_x = r_x[new2old_idx]
-                r_edge_index = torch.stack(
-                    [old2new_idx[r_edge_index[0]], old2new_idx[r_edge_index[1]]],
-                    dim=0,
-                )
-                r_edge_index, r_edge_attr = self.sort_edges(
-                    r_edge_index, r_edge_attr, r_num_nodes
-                )
-
-                s_x = s_x[new2old_idx]
-                s_edge_index = torch.stack(
-                    [old2new_idx[s_edge_index[0]], old2new_idx[s_edge_index[1]]],
-                    dim=0,
-                )
-                s_edge_index, s_edge_attr = self.sort_edges(
-                    s_edge_index, s_edge_attr, r_num_nodes
-                )
-
-                synthon_mask = ~(s_x[:, -1].bool()).squeeze()
-                assert torch.allclose(r_x[synthon_mask], s_x[synthon_mask])
-
-            y = torch.zeros(size=(1, 0), dtype=torch.float)
-            data = Data(
-                x=r_x,
-                edge_index=r_edge_index,
-                edge_attr=r_edge_attr,
-                y=y,
-                idx=i,
-                s_x=s_x,
-                s_edge_index=s_edge_index,
-                s_edge_attr=s_edge_attr,
-                r_smiles=reactants_smi,
-            )
-
-            data_list.append(data)
-        if self.split == "test":
-            data_list.sort(key=lambda data: len(data.x), reverse=True)
-            for i, data in enumerate(data_list):
-                data.idx = i
-        torch.save(self.collate(data_list), self.processed_paths[self.file_idx])
-
-    @staticmethod
-    def sort_edges(edge_index, edge_attr, max_num_nodes):
-        if len(edge_attr) != 0:
-            perm = (edge_index[0] * max_num_nodes + edge_index[1]).argsort()
-            edge_index = edge_index[:, perm]
-            edge_attr = edge_attr[perm]
-
-        return edge_index, edge_attr
-
-
-class MultiSynthonProductUSPTO(MultiSynthonUSPTO):
     def _process_data(self):
         table = pd.read_csv(self.split_paths[self.file_idx])
         data_list = []

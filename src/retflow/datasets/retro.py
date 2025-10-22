@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from typing import Tuple
 
 import torch
-from torch.utils.data.distributed import DistributedSampler
 from torch_geometric.loader import DataLoader
 
 from retflow import config
@@ -57,16 +56,8 @@ class RetroDataset(Dataset):
 
 
     def _get_info(self, train_dataset, val_dataset):
-        dummy_nodes_dist = torch.zeros(RetrosynthesisInfo.max_n_dummy_nodes + 1).to(
-            config.get_device()
-        )
         n_nodes_dist = self._node_counts(train_dataset, val_dataset)
         max_n_nodes = len(n_nodes_dist) - 1
-
-        edge_dist = self._edge_counts(train_dataset)
-
-        node_type_dist = self._node_types(train_dataset)
-        valency_dist = self._valency_count(max_n_nodes, train_dataset, val_dataset)
 
         input_dim, output_dim = self._compute_input_output_dims(
             max_n_nodes, train_dataset
@@ -75,51 +66,8 @@ class RetroDataset(Dataset):
         return RetrosynthesisInfo(
             input_dim=input_dim,
             output_dim=output_dim,
-            n_nodes_dist=n_nodes_dist,
-            node_types_dist=node_type_dist,
-            edge_types_dist=edge_dist,
-            valency_dist=valency_dist,
-            dummy_nodes_dist=dummy_nodes_dist,
             max_n_nodes=max_n_nodes,
         )
-
-    def _get_train_and_val_loaders(
-        self, train_dataset, val_dataset, dist_helper: DistributedHelper | None = None
-    ):
-        if dist_helper is not None:
-            batch_size_per_gpu = max(
-                1, self.batch_size // dist_helper.get_ddp_status()[1]["WORLD_SIZE"]
-            )
-            train_loader = DataLoader(
-                dataset=train_dataset,
-                sampler=DistributedSampler(train_dataset, shuffle=True),
-                batch_size=batch_size_per_gpu,
-                pin_memory=True,
-                num_workers=min(6, os.cpu_count()),
-            )
-
-            val_loader = DataLoader(
-                dataset=val_dataset,
-                sampler=DistributedSampler(val_dataset, shuffle=False),
-                batch_size=batch_size_per_gpu,
-                pin_memory=True,
-                num_workers=min(6, os.cpu_count()),
-            )
-        else:
-            train_loader = DataLoader(
-                train_dataset,
-                batch_size=self.batch_size,
-                shuffle=True,
-                num_workers=min(6, os.cpu_count()),
-            )
-            val_loader = DataLoader(
-                val_dataset,
-                batch_size=self.batch_size,
-                shuffle=False,
-                num_workers=min(6, os.cpu_count()),
-            )
-
-        return train_loader, val_loader
 
     @staticmethod
     def _compute_input_output_dims(max_n_nodes, train_dataset):
@@ -151,27 +99,6 @@ class RetroDataset(Dataset):
         return input_dim, output_dim
 
     @staticmethod
-    def _edge_counts(train_dataset):
-        num_classes = train_dataset[0].edge_attr.shape[1]  # type: ignore
-
-        d = torch.zeros(num_classes, dtype=torch.float)
-
-        for graph in train_dataset:
-            num_nodes: int = graph.num_nodes  # type: ignore
-            num_edges = graph.edge_index.shape[1]  # type: ignore
-            edge_type_counts = torch.sum(graph.edge_attr, dim=0)  # type: ignore
-
-            all_pairs = num_nodes * (num_nodes - 1)
-            num_non_edges = all_pairs - num_edges
-
-            d[0] += num_non_edges
-            d[1:] += edge_type_counts[1:]
-
-        d = d / d.sum()
-        d = d.to(config.get_device())
-        return d
-
-    @staticmethod
     def _node_counts(train_dataset, val_dataset, max_nodes_possible=300):
         all_counts = torch.zeros(max_nodes_possible)
 
@@ -185,44 +112,6 @@ class RetroDataset(Dataset):
         all_counts = all_counts / all_counts.sum()
 
         return all_counts.to(config.get_device())
-
-    @staticmethod
-    def _node_types(train_dataset):
-        num_classes = train_dataset[0].x.shape[1]
-        counts = torch.zeros(num_classes)
-
-        for graph in train_dataset:
-            counts += torch.sum(graph.x, dim=0)
-
-        counts = counts / counts.sum()
-        return counts.to(config.get_device())
-
-    @staticmethod
-    def _valency_count(max_n_nodes, train_dataset, val_dataset):
-        valencies = torch.zeros(
-            3 * max_n_nodes - 2
-        )  # Max valency possible if everything is connected
-
-        # No bond, single bond, double bond, triple bond, aromatic bond
-        multiplier = torch.tensor([0, 1, 2, 3, 1.5])
-
-        for dataset in [train_dataset, val_dataset]:
-            for atom, data in enumerate(dataset):
-                edges = data.edge_attr[data.edge_index[0] == atom]
-                edges_total = edges.sum(dim=0)
-                valency = (edges_total * multiplier).sum()
-                valencies[valency.long().item()] += 1
-        valencies = valencies / valencies.sum()
-        return valencies.to(config.get_device())
-
-    # @staticmethod
-    # def _dummy_atoms_counts(max_n_dummy_nodes, train_dataset):
-    #     dummy_atoms = torch.zeros(max_n_dummy_nodes + 1).to(config.get_device())
-    #     for data in train_dataset:
-    #         cnt = torch.sum(data.p_x[:, -1]).long()
-    #         dummy_atoms[cnt] += 1
-    #     out = dummy_atoms / dummy_atoms.sum()
-    #     return out.to(config.get_device())
 
 
 @dataclass

@@ -1,8 +1,9 @@
+import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Tuple
 
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, DistributedSampler
 
 from retflow.datasets.info import RetrosynthesisInfo
 from retflow.runner import DistributedHelper
@@ -26,3 +27,29 @@ class Dataset(ABC):
     @abstractmethod
     def load_eval(self, load_valid=False) -> Tuple[DataLoader, RetrosynthesisInfo]:
         pass
+
+    def _get_train_and_val_loaders(
+        self, train_dataset, val_dataset, dist_helper: DistributedHelper | None = None
+    ):
+        
+        bs = self.batch_size if dist_helper is None else max(
+            1, self.batch_size // dist_helper.get_ddp_status()[1]["WORLD_SIZE"]
+        )
+
+        train_loader = DataLoader(
+            dataset=train_dataset,
+            sampler=DistributedSampler(val_dataset, shuffle=False) if dist_helper is not None else None,
+            batch_size=bs,
+            pin_memory=False if dist_helper is None else True,
+            num_workers=min(6, os.cpu_count()),
+        )
+
+        val_loader = DataLoader(
+            dataset=val_dataset,
+            sampler=DistributedSampler(val_dataset, shuffle=False) if dist_helper is not None else None,
+            batch_size=bs,
+            pin_memory=False if dist_helper is None else True,
+            num_workers=min(6, os.cpu_count()),
+        )
+        
+        return train_loader, val_loader
