@@ -1,5 +1,7 @@
 # RetroSynFlow: Discrete Flow Matching for Accurate and Diverse Single-Step Retrosynthesis
 
+[![arXiv](https://img.shields.io/badge/arXiv-Paper-red)](https://arxiv.org/abs/2506.04439)
+
 The official implementation of NeurIPS 2025 paper named "RetroSynFlow: Discrete Flow Matching for Accurate and Diverse Single-Step Retrosynthesis". 
 
 ## Overview
