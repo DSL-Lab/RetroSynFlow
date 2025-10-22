@@ -12,7 +12,6 @@ from retflow.models.model import Model
 from retflow.utils.wrappers import GraphModelLayerInfo, GraphWrapper
 
 
-
 @dataclass
 class GraphTransformer(Model):
     n_layers: int = 5

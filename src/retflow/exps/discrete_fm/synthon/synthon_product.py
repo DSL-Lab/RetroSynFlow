@@ -1,10 +1,5 @@
-from retflow import Experiment
-from retflow.datasets import SynthonDataset
-from retflow.methods import GraphDiscreteFM
-from retflow.models import GraphTransformer
-from retflow.optimizers.optimizer import AdamW
-from retflow.optimizers.schedulers import ConsLR
-from retflow.problems import SynthonCompletion
+from retflow import (ADAMW, Experiment, GraphDiscreteFM, GraphTransformer,
+                     SynthonCompletion, SynthonDataset)
 from retflow.runner import cli_runner, slurm_config
 
 model = GraphTransformer()
@@ -14,7 +9,7 @@ method = GraphDiscreteFM()
 
 experiment = Experiment(
     problem=SynthonCompletion(model, dataset, method, use_product_context=True),
-    optim=AdamW(lr=2e-4, grad_clip=None, lr_sched=ConsLR()),
+    optim=ADAMW,
     epochs=800,
     sample_epoch=100,
     num_samples=128,
@@ -23,7 +18,6 @@ experiment = Experiment(
     group="discrete_fm_synthon_completion",
     name="product_context",
 )
-
 
 if __name__ == "__main__":
     cli_runner([experiment], slurm_config.DEFAULT_3_GPU_46H)

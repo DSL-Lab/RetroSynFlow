@@ -12,6 +12,5 @@ experiments_evals = [
     )
 ]
 
-
 if __name__ == "__main__":
     cli_runner(experiments_evals, slurm_config.DEFAULT_GPU_32H)

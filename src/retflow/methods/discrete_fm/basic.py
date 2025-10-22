@@ -6,7 +6,8 @@ import torch.nn.functional as F
 from tqdm import tqdm
 
 from retflow.datasets.retro import RetrosynthesisInfo
-from retflow.methods.discrete_fm.scheduler import TimeScheduler, LinearTimeScheduler
+from retflow.methods.discrete_fm.scheduler import (LinearTimeScheduler,
+                                                   TimeScheduler)
 from retflow.methods.loss_functions import TrainLossDiscrete
 from retflow.methods.method import Method
 from retflow.methods.method_utils import pad_t_like_x, sample_discrete_features

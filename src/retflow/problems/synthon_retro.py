@@ -21,7 +21,7 @@ from retflow.utils.data import (build_graph_from_mol,
 
 
 @dataclass
-class MultiSynthonRetrosynthesis(Problem):
+class SynthonRetrosynthesis(Problem):
     synthon_topk: int = 1
     samples_per_synthon: List[int] = None
     product_context: bool = False

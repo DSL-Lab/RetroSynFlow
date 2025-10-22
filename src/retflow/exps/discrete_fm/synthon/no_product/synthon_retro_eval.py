@@ -5,7 +5,7 @@ from retflow.methods import GraphDiscreteFM
 from retflow.models import GraphTransformer
 from retflow.optimizers.optimizer import AdamW
 from retflow.optimizers.schedulers import ConsLR
-from retflow.problems import MultiSynthonRetrosynthesis
+from retflow.problems import SynthonRetrosynthesis
 from retflow.runner import cli_runner, slurm_config
 
 model = GraphTransformer()
@@ -15,7 +15,7 @@ method = GraphDiscreteFM()
 
 experiments = [
     Experiment(
-        problem=MultiSynthonRetrosynthesis(model, dataset, method),
+        problem=SynthonRetrosynthesis(model, dataset, method),
         optim=AdamW(lr=2e-4, grad_clip=None, lr_sched=ConsLR()),
         epochs=1000,
         sample_epoch=150,

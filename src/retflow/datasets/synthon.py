@@ -6,7 +6,6 @@ from torch_geometric.loader import DataLoader
 
 from retflow import config
 from retflow.datasets.data.uspto_synthon import SynthonUSPTO
-                                            
 from retflow.datasets.info import SYNTHON_NAMES, RetrosynthesisInfo
 from retflow.datasets.retro import RetroDataset
 from retflow.runner import DistributedHelper

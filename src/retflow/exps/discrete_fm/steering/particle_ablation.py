@@ -1,7 +1,7 @@
 from retflow.experiment_eval import ExperimentEvaluator
 from retflow.exps.discrete_fm.product.product_baseline import experiment
-from retflow.methods import (FKSteeringDiscreteFM, LinearTimeScheduler,
-                             UniformTimeSampler, ForwardSynthesisReward)
+from retflow.methods import (FKSteeringDiscreteFM, ForwardSynthesisReward,
+                             LinearTimeScheduler, UniformTimeSampler)
 from retflow.runner import cli_runner, slurm_config
 
 num_particles = [2, 4, 6, 8]
