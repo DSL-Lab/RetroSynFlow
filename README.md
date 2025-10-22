@@ -99,21 +99,20 @@ from retflow.experiment_eval import ExperimentEvaluator
 from retflow.runner import cli_runner, slurm_config
 from [experiment_file] import experiment
 
-experiments_evals = [
-    ExperimentEvaluator(
-        experiment=experiment,
-        test_method=experiment.problem.method,
-        examples_per_sample=100,
-        checkpoint_name="model_epoch_300.pt",
-        output_name=f"linear_100_reactants",
-    )
-]
+experiment_eval = ExperimentEvaluator(
+    experiment=experiment,
+    test_method=experiment.problem.method,
+    examples_per_sample=100,
+    checkpoint_name="model_epoch_300.pt",
+    output_name=f"linear_100_reactants",
+)
+
 
 if __name__ == "__main__":
-    cli_runner(experiments_evals, slurm_config.DEFAULT_GPU_32H)
+    cli_runner([experiments_eval], slurm_config.DEFAULT_GPU_32H)
 ```
 
-Run the following command to evaluate the model with 100 reactants generated per product.  
+Run the following command to evaluate the model saved at epoch 300 with 100 reactants generated per product.  
 
 ```
 python [experiment_eval_file].py --local
@@ -128,7 +127,7 @@ python [experiment_eval_file].py --slurm
 
 ## Synthon Completion
 
-First, train a reaction center identification model using the `train_g2g.ipynb` notebook. This will automatically save the model to the models folder in the workspace directory. 
+First, train a reaction center identification model using the `train_g2g.ipynb` notebook which should take ~15 minutes. 
 
 In a few lines of code we can train a flow matching model for synthon -> reactants,
 
