@@ -178,9 +178,9 @@ If you find this work useful, please consider citing:
 
 ```
 @article{yadav2025retrosynflow,
-      title={RetroSynFlow: Discrete Flow Matching for Accurate and Diverse Single-Step Retrosynthesis},
-      author={Yadav, Robin and Yan, Qi and Wolf, Guy and Bose, Joey and Liao, Renjie},
-      journal={arXiv preprint arXiv:2506.04439},
-      year={2025}
-    }
+    title={RetroSynFlow: Discrete Flow Matching for Accurate and Diverse Single-Step Retrosynthesis},
+    author={Yadav, Robin and Yan, Qi and Wolf, Guy and Bose, Joey and Liao, Renjie},
+    journal={arXiv preprint arXiv:2506.04439},
+    year={2025}
+}
 ```
