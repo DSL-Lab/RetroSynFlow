@@ -12,13 +12,14 @@ from retflow.models.model import Model
 from retflow.utils.wrappers import GraphModelLayerInfo, GraphWrapper
 
 
+
 @dataclass
 class GraphTransformer(Model):
-    n_layers: int
-    n_head: int
-    ff_dims: GraphModelLayerInfo
-    hidden_mlp_dims: GraphModelLayerInfo
-    hidden_dims: GraphModelLayerInfo
+    n_layers: int = 5
+    n_head: int = 8
+    ff_dims: GraphModelLayerInfo = GraphModelLayerInfo(256, 128, 128)
+    hidden_mlp_dims: GraphModelLayerInfo = GraphModelLayerInfo(256, 128, 128)
+    hidden_dims: GraphModelLayerInfo = GraphModelLayerInfo(256, 64, 64)
 
     def load_model(
         self,

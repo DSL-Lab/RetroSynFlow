@@ -16,10 +16,10 @@ from retflow.utils.wrappers import GraphWrapper
 
 
 @dataclass
-class MarkovBridge(Method):
-    steps: int
-    noise_schedule: str
-    lambda_train: float
+class GraphMarkovBridge(Method):
+    steps: int = 50
+    noise_schedule: str = "cosine"
+    lambda_train: float = 5.0
     vlb_loss: bool = True
 
     def setup(self, dataset_info: RetrosynthesisInfo, model: Model, device: str):

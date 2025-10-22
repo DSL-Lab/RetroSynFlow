@@ -42,3 +42,5 @@ class AdamW(Adam):
             amsgrad=self.ams_grad,
             weight_decay=self.weight_decay,
         )
+
+ADAMW = AdamW(lr=2e-4, lr_sched=LearningRateSched())

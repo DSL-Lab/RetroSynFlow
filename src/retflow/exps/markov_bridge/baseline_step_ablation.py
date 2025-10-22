@@ -1,18 +1,11 @@
 from retflow.experiment_eval import ExperimentEvaluator
 from retflow.exps.markov_bridge.baseline import experiment
-from retflow.methods import MarkovBridge
+from retflow.methods import GraphMarkovBridge
 from retflow.runner import cli_runner, slurm_config
 
 steps = [5, 10, 20, 25, 50, 100]
 
-test_methods = [
-    MarkovBridge(
-        steps=step,
-        noise_schedule="cosine",
-        lambda_train=5.0,
-    )
-    for step in steps
-]
+test_methods = [GraphMarkovBridge(steps=step) for step in steps]
 
 experiments_evals = [
     ExperimentEvaluator(

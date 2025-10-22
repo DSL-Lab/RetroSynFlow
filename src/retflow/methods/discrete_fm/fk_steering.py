@@ -6,7 +6,7 @@ from tqdm import tqdm
 from rdkit import Chem
 
 from retflow.datasets.retro import RetrosynthesisInfo
-from retflow.methods.discrete_fm.basic import DiscreteFM
+from retflow.methods.discrete_fm.basic import GraphDiscreteFM
 from retflow.methods.method_utils import pad_t_like_x, sample_discrete_features
 from retflow.utils.data import build_molecule
 from retflow.utils.wrappers import GraphWrapper
@@ -14,7 +14,7 @@ from retflow.methods.discrete_fm.rewards import Reward, QEDReward
 
 
 @dataclass
-class FKSteeringDiscreteFM(DiscreteFM):
+class FKSteeringDiscreteFM(GraphDiscreteFM):
     num_particles: int = 4
     resample_freq: int = 10
     lmbda: float = 2.0

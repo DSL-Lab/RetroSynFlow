@@ -6,21 +6,21 @@ import torch.nn.functional as F
 from tqdm import tqdm
 
 from retflow.datasets.retro import RetrosynthesisInfo
-from retflow.methods.discrete_fm.scheduler import TimeScheduler
+from retflow.methods.discrete_fm.scheduler import TimeScheduler, LinearTimeScheduler
 from retflow.methods.loss_functions import TrainLossDiscrete
 from retflow.methods.method import Method
 from retflow.methods.method_utils import pad_t_like_x, sample_discrete_features
-from retflow.methods.time_sampler import TimeSampler
+from retflow.methods.time_sampler import TimeSampler, UniformTimeSampler
 from retflow.models.model import Model
 from retflow.utils.wrappers import GraphWrapper
 
 
 @dataclass
-class DiscreteFM(Method):
-    steps: int
-    edge_time_sched: TimeScheduler
-    node_time_sched: TimeScheduler
-    time_sampler: TimeSampler
+class GraphDiscreteFM(Method):
+    steps: int = 50
+    edge_time_sched: TimeScheduler = LinearTimeScheduler()
+    node_time_sched: TimeScheduler = LinearTimeScheduler()
+    time_sampler: TimeSampler = UniformTimeSampler()
     edge_weight_loss: float = 1.0
 
     def setup(self, dataset_info: RetrosynthesisInfo, model: Model, device: str):
@@ -169,3 +169,4 @@ class DiscreteFM(Method):
             1.0 - self.edge_time_sched.kappa(t)
         )
         return pad_t_like_x(mult_factor, E_t) * (E_1_probs - E_t)
+

@@ -1,15 +1,9 @@
 from retflow.experiment_eval import ExperimentEvaluator
-from retflow.exps.discrete_fm.synthon.multi_synthon import experiment
-from retflow.methods import DiscreteFM, LinearTimeScheduler, UniformTimeSampler
+from retflow.exps.discrete_fm.synthon.no_product.synthon import experiment
+from retflow.methods import GraphDiscreteFM
 from retflow.runner import cli_runner, slurm_config
 
-test_method = DiscreteFM(
-    steps=50,
-    edge_time_sched=LinearTimeScheduler(),
-    node_time_sched=LinearTimeScheduler(),
-    time_sampler=UniformTimeSampler(),
-    edge_weight_loss=5.0,
-)
+test_method = GraphDiscreteFM()
 
 experiments_evals = [
     ExperimentEvaluator(

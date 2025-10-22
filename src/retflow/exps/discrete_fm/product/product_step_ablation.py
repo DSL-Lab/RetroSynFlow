@@ -1,20 +1,11 @@
 from retflow.experiment_eval import ExperimentEvaluator
 from retflow.exps.discrete_fm.product.product_baseline import experiment
-from retflow.methods import DiscreteFM, LinearTimeScheduler, UniformTimeSampler
+from retflow.methods import GraphDiscreteFM
 from retflow.runner import cli_runner, slurm_config
 
 steps = [5, 10, 20, 25, 50, 100]
 
-test_methods = [
-    DiscreteFM(
-        steps=step,
-        edge_time_sched=LinearTimeScheduler(),
-        node_time_sched=LinearTimeScheduler(),
-        time_sampler=UniformTimeSampler(),
-        edge_weight_loss=5.0,
-    )
-    for step in steps
-]
+test_methods = [GraphDiscreteFM(steps=step) for step in steps]
 
 experiments_evals = [
     ExperimentEvaluator(
@@ -26,7 +17,6 @@ experiments_evals = [
     )
     for test_method in test_methods
 ]
-
 
 if __name__ == "__main__":
     cli_runner(experiments_evals, slurm_config.DEFAULT_GPU_32H)

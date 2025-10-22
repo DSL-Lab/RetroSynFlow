@@ -1,32 +1,19 @@
 from retflow import Experiment
 from retflow.datasets import TorchDrugRetroDataset
 from retflow.experiment_eval import ExperimentEvaluator
-from retflow.methods import DiscreteFM, LinearTimeScheduler, UniformTimeSampler
+from retflow.methods import GraphDiscreteFM
 from retflow.models import GraphTransformer
 from retflow.optimizers.optimizer import AdamW
 from retflow.optimizers.schedulers import ConsLR
 from retflow.problems import MultiSynthonRetrosynthesis
 from retflow.runner import cli_runner, slurm_config
-from retflow.utils import GraphModelLayerInfo
 
-model = GraphTransformer(
-    n_layers=5,
-    n_head=8,
-    ff_dims=GraphModelLayerInfo(256, 128, 128),
-    hidden_mlp_dims=GraphModelLayerInfo(256, 128, 128),
-    hidden_dims=GraphModelLayerInfo(256, 64, 64),
-)
+model = GraphTransformer()
 
 dataset = TorchDrugRetroDataset(
     name="DrugUSPTO", batch_size=32 * 3, product_context=True
 )
-method = DiscreteFM(
-    steps=50,
-    edge_time_sched=LinearTimeScheduler(),
-    node_time_sched=LinearTimeScheduler(),
-    time_sampler=UniformTimeSampler(),
-    edge_weight_loss=5.0,
-)
+method = GraphDiscreteFM()
 
 experiments = [
     Experiment(
@@ -38,7 +25,7 @@ experiments = [
             samples_per_synthon=[70, 30],
             product_context=True,
         ),
-        optim=AdamW(lr=2e-4, grad_clip=None, lr_sched=ConsLR()),
+        optim=AdamW(lr=2e-4, lr_sched=ConsLR()),
         epochs=600,
         sample_epoch=100,
         num_samples=128,
@@ -49,13 +36,7 @@ experiments = [
     )
 ]
 
-test_method = DiscreteFM(
-    steps=50,
-    edge_time_sched=LinearTimeScheduler(),
-    node_time_sched=LinearTimeScheduler(),
-    time_sampler=UniformTimeSampler(),
-    edge_weight_loss=5.0,
-)
+test_method = GraphDiscreteFM(steps=100)
 
 experiments_evals = [
     ExperimentEvaluator(
