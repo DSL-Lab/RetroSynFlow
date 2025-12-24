@@ -5,7 +5,7 @@ import torch
 from torch import nn
 from torch.optim.optimizer import Optimizer as Optim
 
-from retflow.optimizers.schedulers import LearningRateSched
+from retflow.optimizers.schedulers import ConsLR, LearningRateSched
 
 
 @dataclass
@@ -43,4 +43,4 @@ class AdamW(Adam):
             weight_decay=self.weight_decay,
         )
 
-ADAMW = AdamW(lr=2e-4, lr_sched=LearningRateSched())
+ADAMW = AdamW(lr=2e-4, lr_sched=ConsLR())
