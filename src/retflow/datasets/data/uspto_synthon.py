@@ -5,11 +5,11 @@ from typing import Dict
 import pandas as pd
 import torch
 from rdkit import Chem
-from torch_geometric.data import Data, InMemoryDataset
+from torch_geometric.data import Data
 from torchdrug.data import Molecule
 from tqdm import tqdm
 
-from retflow.datasets.data.uspto import to_list
+from retflow.datasets.data.uspto import USPTO, to_list
 from retflow.datasets.info import DOWNLOAD_URL_TEMPLATE, RetrosynthesisInfo
 from retflow.utils.data import (build_graph_from_mol,
                                 build_graph_from_mol_with_mapping,
@@ -17,8 +17,9 @@ from retflow.utils.data import (build_graph_from_mol,
                                 reactants_with_partial_atom_mapping)
 
 
-class SynthonUSPTO(InMemoryDataset):
+class SynthonUSPTO(USPTO):
     def __init__(self, split, root, download_and_process=False, swap=False):
+        super().__init__(split, root, download_and_process, swap)
         self.split = split
 
         if self.split == "train":
@@ -30,7 +31,7 @@ class SynthonUSPTO(InMemoryDataset):
         else:
             raise NotImplementedError
         self.download_and_process = download_and_process
-        super().__init__(root=root)
+        
 
         self.slices: Dict
         self.data, self.slices = torch.load(self.processed_paths[self.file_idx])
@@ -197,7 +198,7 @@ class SynthonUSPTO(InMemoryDataset):
 
             data_list.append(data)
         if self.split == "test":
-            data_list.sort(key=lambda data: len(data.x), reverse=True)
+            data_list.sort(key=lambda data: len(data.x))
             for i, data in enumerate(data_list):
                 data.idx = i
         torch.save(self.collate(data_list), self.processed_paths[self.file_idx])

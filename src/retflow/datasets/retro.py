@@ -9,7 +9,7 @@ from torch_geometric.loader import DataLoader
 from retflow import config
 from retflow.datasets.data.uspto import USPTO
 from retflow.datasets.dataset import Dataset
-from retflow.datasets.info import NAMES, RetrosynthesisInfo
+from retflow.datasets.info import RetrosynthesisInfo
 from retflow.runner import DistributedHelper
 from retflow.utils import ExtraFeatures, GraphDimensions, to_dense
 
@@ -17,16 +17,13 @@ from retflow.utils import ExtraFeatures, GraphDimensions, to_dense
 @dataclass
 class RetroDataset(Dataset):
     def load(self, dist_helper: DistributedHelper | None = None):
-        if self.name not in NAMES:
-            raise ValueError(f"{self.name} is not any of the RetroSynthesis Datasets.")
-
         save_dir = config.get_dataset_directory() / self.name
 
         train_dataset = USPTO(split="train", root=str(save_dir))
         val_dataset = USPTO(split="val", root=str(save_dir))
 
         train_loader, val_loader = self._get_train_and_val_loaders(
-            train_dataset, val_dataset, dist_helper
+            train_dataset, val_dataset, DataLoader, dist_helper
         )
         self.info = self._get_info(train_dataset, val_dataset)
 
@@ -39,9 +36,6 @@ class RetroDataset(Dataset):
             USPTO(split=split, root=str(save_dir), download_and_process=True)
 
     def load_eval(self, load_valid=False) -> Tuple[DataLoader | RetrosynthesisInfo]:
-        if self.name not in NAMES:
-            raise ValueError(f"{self.name} is not any of the RetroSynthesis Datasets.")
-
         save_dir = config.get_dataset_directory() / self.name
 
         eval_dataset = USPTO(split="val" if load_valid else "test", root=str(save_dir))
@@ -119,9 +113,6 @@ class SmallRetroDataset(RetroDataset):
     full_test: bool = False
 
     def load(self, dist_helper: DistributedHelper | None = None):
-        if self.name not in NAMES:
-            raise ValueError(f"{self.name} is not any of the RetroSynthesis datasets.")
-
         save_dir = config.get_dataset_directory() / self.name
 
         train_dataset = USPTO(split="train", root=str(save_dir))
@@ -131,16 +122,13 @@ class SmallRetroDataset(RetroDataset):
         val_dataset = val_dataset[0 : int(0.2 * len(val_dataset))]
 
         train_loader, val_loader = self._get_train_and_val_loaders(
-            train_dataset, val_dataset, dist_helper=dist_helper
+            train_dataset, val_dataset, DataLoader, dist_helper=dist_helper
         )
         self.info = self._get_info(train_dataset, val_dataset)
         self.train_smiles = train_dataset.r_smiles
         return train_loader, val_loader, self.info
 
     def load_eval(self, load_valid=False) -> Tuple[DataLoader | RetrosynthesisInfo]:
-        if self.name not in NAMES:
-            raise ValueError(f"{self.name} is not any of the RetroSynthesis Datasets.")
-
         save_dir = config.get_dataset_directory() / self.name
 
         eval_dataset = USPTO(split="val" if load_valid else "test", root=str(save_dir))
@@ -161,16 +149,13 @@ class ToyRetroDataset(RetroDataset):
     num_molecules: int = 2
 
     def load(self, dist_helper: DistributedHelper | None = None):
-        if self.name not in NAMES:
-            raise ValueError(f"{self.name} is not any of the RetroSynthesis Datasets.")
-
         save_dir = config.get_dataset_directory() / self.name
 
         train_dataset = USPTO(split="train", root=str(save_dir))[0 : self.num_molecules]
         val_dataset = copy.deepcopy(train_dataset)
 
         train_loader, val_loader = self._get_train_and_val_loaders(
-            train_dataset, val_dataset, dist_helper
+            train_dataset, val_dataset, DataLoader, dist_helper
         )
         self.info = self._get_info(train_dataset, val_dataset)
         self.train_smiles = train_dataset.r_smiles

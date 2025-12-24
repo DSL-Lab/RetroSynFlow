@@ -6,12 +6,12 @@ from typing import List
 
 from retflow.experiment import Experiment
 from retflow.experiment_eval import ExperimentEvaluator
-from retflow.runner.distributed_helper import DistributedHelper
 from retflow.runner.slurm import (SlurmConfig, make_jobarray_file_contents,
                                   make_jobarray_file_contents_ddp)
 from retflow.runner.wandb_integration import (download_run_data,
                                               get_successful_ids_and_runs,
                                               get_wandb_runs_for_group)
+from retflow.utils.distributed_helper import DistributedHelper
 from retflow.utils.eval_helper import process_data_compute_metrics
 
 

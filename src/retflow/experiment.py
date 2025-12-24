@@ -13,7 +13,7 @@ from retflow.logger.asdict_with_classes import asdict_with_class
 from retflow.logger.data_logger import DataLogger
 from retflow.optimizers.optimizer import Optimizer
 from retflow.problems.problem import Problem
-from retflow.runner.distributed_helper import DistributedHelper
+from retflow.utils.distributed_helper import DistributedHelper
 
 
 @dataclass

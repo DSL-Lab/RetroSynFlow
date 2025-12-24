@@ -29,9 +29,7 @@ class GraphDiscreteFM(Method):
         self.input_dim = dataset_info.input_dim
         self.output_dim = dataset_info.output_dim
 
-        torch_model = model.load_model(
-            dataset_info.input_dim, dataset_info.output_dim, reduce_output=False
-        )
+        torch_model = model.load_model(dataset_info.input_dim, dataset_info.output_dim)
 
         self.loss_function = TrainLossDiscrete(edge_weight=self.edge_weight_loss)
 

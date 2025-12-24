@@ -43,7 +43,7 @@ class ExperimentEvaluator:
                 "Double check checkpoint name."
             )
 
-        self.experiment.problem.dataset.batch_size = self.test_batch_size
+        self.experiment.problem.dataset.batch_size = 1
         self.experiment.problem.method = self.test_method
         self.experiment.problem.setup_problem_eval(model_checkpoint, on_valid)
 

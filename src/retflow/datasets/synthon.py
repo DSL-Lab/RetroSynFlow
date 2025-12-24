@@ -6,7 +6,7 @@ from torch_geometric.loader import DataLoader
 
 from retflow import config
 from retflow.datasets.data.uspto_synthon import SynthonUSPTO
-from retflow.datasets.info import SYNTHON_NAMES, RetrosynthesisInfo
+from retflow.datasets.info import RetrosynthesisInfo
 from retflow.datasets.retro import RetroDataset
 from retflow.runner import DistributedHelper
 
@@ -14,9 +14,6 @@ from retflow.runner import DistributedHelper
 @dataclass
 class SynthonDataset(RetroDataset):
     def load(self, dist_helper: DistributedHelper | None = None):
-        if self.name not in SYNTHON_NAMES:
-            raise ValueError(f"{self.name} is not any of the RetroSynthesis Datasets.")
-
         save_dir = config.get_dataset_directory() / self.name
 
         if self.name == "SynthonUSPTO":
@@ -26,7 +23,7 @@ class SynthonDataset(RetroDataset):
             raise NotImplementedError
 
         train_loader, val_loader = self._get_train_and_val_loaders(
-            train_dataset, val_dataset, dist_helper
+            train_dataset, val_dataset, DataLoader, dist_helper
         )
         self.info = self._get_info(train_dataset, val_dataset)
 
@@ -42,9 +39,6 @@ class SynthonDataset(RetroDataset):
                 )
 
     def load_eval(self, load_valid=False) -> Tuple[DataLoader | RetrosynthesisInfo]:
-        if self.name not in SYNTHON_NAMES:
-            raise ValueError(f"{self.name} is not any of the RetroSynthesis Datasets.")
-
         save_dir = config.get_dataset_directory() / self.name
 
         if self.name == "SynthonUSPTO":
@@ -80,9 +74,6 @@ class ToySynthonDataset(RetroDataset):
     num_molecules: int = 2
 
     def load(self, dist_helper: DistributedHelper | None = None):
-        if self.name not in SYNTHON_NAMES:
-            raise ValueError(f"{self.name} is not any of the RetroSynthesis Datasets.")
-
         save_dir = config.get_dataset_directory() / self.name
 
         if self.name == "SynthonUSPTO":
@@ -92,7 +83,7 @@ class ToySynthonDataset(RetroDataset):
             raise NotImplementedError
 
         train_loader, val_loader = self._get_train_and_val_loaders(
-            train_dataset, val_dataset, dist_helper=dist_helper
+            train_dataset, val_dataset, DataLoader, dist_helper=dist_helper
         )
         self.info = self._get_info(train_dataset, val_dataset)
         self.train_smiles = train_dataset.r_smiles

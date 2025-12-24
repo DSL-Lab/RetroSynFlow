@@ -1,18 +1,14 @@
-import argparse
-import re
-
 import numpy as np
 import torch
 import torch.nn.functional as F
 import torch_geometric
-from onmt.translate.translator import build_translator
+from onmt.translate.translator import Translator, build_translator
 from rdkit import Chem
 from rdkit.Chem.rdmolops import GetAdjacencyMatrix
 from torch_geometric.utils import to_dense_adj, to_dense_batch
 from torch_scatter import scatter_max
 from torchdrug.data import Molecule
 
-from retflow import config
 from retflow.utils.wrappers import GraphWrapper
 
 bond_dict = [
@@ -356,53 +352,4 @@ def get_difference(reactant: Molecule, product: Molecule):
 
     return edge_added, edge_modified, prod2react
 
-
-def smi_tokenizer(smi):
-    """
-    Tokenize a SMILES molecule or reaction
-    https://github.com/pschwllr/MolecularTransformer/tree/master#pre-processing
-    """
-    pattern = "(\[[^\]]+]|Br?|Cl?|N|O|S|P|F|I|b|c|n|o|s|p|\(|\)|\.|=|#|-|\+|\\\\|\/|:|~|@|\?|>|\*|\$|\%[0-9]{2}|[0-9])"
-    regex = re.compile(pattern)
-    tokens = [token for token in regex.findall(smi)]
-    # assert smi == ''.join(tokens)
-    if smi != "".join(tokens):
-        print(smi, "".join(tokens))
-    return " ".join(tokens)
-
-
-def get_forward_model(n_best):
-    model_path = config.get_models_directory() / "mol_former.pt"
-
-    args = argparse.Namespace(
-        models=[str(model_path)],
-        n_best=n_best,
-        src="input.txt",
-        output="pred.txt",
-        batch_size=128,
-        replace_unk=True,
-        max_length=200,
-        fast=True,
-        data_type="text",
-        alpha=0.0,
-        beta=-0.0,
-        block_ngram_repeat=0,
-        ignore_when_blocking=[],
-        length_penalty="none",
-        coverage_penalty="none",
-        stepwise_penalty=False,
-        beam_size=5,
-        min_length=0,
-        dump_beam="",
-        verbose=False,
-        report_bleu=False,
-        gpu=0,
-        sample_rate=16000,
-        window_size=0.02,
-        window_stride=0.01,
-        window="hamming",
-        image_channel_size=3,
-        attn_debug=False,
-    )
-    return build_translator(args, report_score=False)
 

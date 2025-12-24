@@ -1,6 +1,6 @@
 import torch
 
-from retflow.utils.place_holders import GraphWrapper
+from retflow.utils import GraphWrapper
 
 
 def sample_discrete_features(probX, probE, node_mask):

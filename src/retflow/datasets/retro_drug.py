@@ -17,9 +17,6 @@ class TorchDrugRetroDataset(Dataset):
     product_context: bool = False
 
     def load(self, dist_helper: DistributedHelper | None = None):
-        if self.name not in ["DrugUSPTO"]:
-            raise ValueError(f"{self.name} is not a TorchDrug Dataset.")
-
         save_dir = config.get_dataset_directory() / self.name
 
         train_dataset = _TorchDrugUSPTO(
@@ -30,14 +27,10 @@ class TorchDrugRetroDataset(Dataset):
         )
 
         train_loader, val_loader = self._get_train_and_val_loaders(
-            train_dataset, val_dataset, dist_helper
+            train_dataset, val_dataset, DataLoader, dist_helper
         )
-        dummy_dataset = SynthonDataset(name="MultiSynthonUSPTO", batch_size=1)
+        dummy_dataset = SynthonDataset(name="SynthonUSPTO", batch_size=1)
         _, _, self.info = dummy_dataset.load()
-
-        if self.product_context:
-            self.info.input_dim.node_dim += 17
-            self.info.input_dim.edge_dim += 5
 
         return train_loader, val_loader, self.info
 
@@ -47,9 +40,6 @@ class TorchDrugRetroDataset(Dataset):
             _TorchDrugUSPTO.download(split, str(save_dir))
 
     def load_eval(self, load_valid=False) -> Tuple[DataLoader | RetrosynthesisInfo]:
-        if self.name not in ["DrugUSPTO"]:
-            raise ValueError(f"{self.name} is not any of the RetroSynthesis Datasets.")
-
         save_dir = config.get_dataset_directory() / self.name
 
         self.test_dataset = _TorchDrugUSPTO(
@@ -57,13 +47,8 @@ class TorchDrugRetroDataset(Dataset):
             path=str(save_dir),
             atom_feature="center_identification",
         )
-
-        dummy_dataset = SynthonDataset(name="MultiSynthonUSPTO", batch_size=1)
+        dummy_dataset = SynthonDataset(name="SynthonUSPTO", batch_size=1)
         _, _, self.info = dummy_dataset.load()
-
-        if self.product_context:
-            self.info.input_dim.node_dim += 17
-            self.info.input_dim.edge_dim += 5
 
         test_loader = DataLoader(self.test_dataset, batch_size=self.batch_size)
         return test_loader, self.info

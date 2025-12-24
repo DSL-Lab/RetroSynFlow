@@ -6,7 +6,7 @@ from typing import List
 import torch
 from rdkit import Chem
 from torch_geometric.data import Batch, Data
-from torchdrug import layers, models, tasks, utils
+from torchdrug import layers, models, tasks
 from torchdrug.core import Registry as R
 
 from retflow import config
@@ -17,7 +17,7 @@ from retflow.utils import (ExtraFeatures, GraphModelWrapper, build_molecule,
                            build_simple_molecule, to_dense)
 from retflow.utils.data import (build_graph_from_mol,
                                 build_graph_from_mol_with_mapping,
-                                compute_nodes_mapping)
+                                compute_nodes_mapping, get_molecule_smi_list)
 
 
 @dataclass
@@ -73,7 +73,7 @@ class SynthonRetrosynthesis(Problem):
         synthon_pred_task.load_state_dict(
             torch.load(config.get_models_directory() / "g2g_center.pth")["model"]
         )
-        self.synthon_pred_task = synthon_pred_task  # .to(config.get_device())
+        self.synthon_pred_task = synthon_pred_task 
 
         self.model_wrapper = GraphModelWrapper(
             self.torch_model,
@@ -133,30 +133,20 @@ class SynthonRetrosynthesis(Problem):
         pred_reactant_smiles = []
         computed_scores = []
 
-        if self.samples_per_synthon is None:
-            per_synthon_ex_per_sample = int(examples_per_sample / self.synthon_topk)
-        else:
-            assert sum(self.samples_per_synthon) == examples_per_sample
-
         for i, data in enumerate(self.test_loader):
             config.get_logger().info(
                 f"Generated reactants for {num_samples} product molecules so far."
             )
             config.get_logger().info(f"Generating samples for batch {i} of data.")
 
-            bs = data["graph"][0].batch_size
-            # if config.get_device() == "cuda":
-            #     data = utils.cuda(data)
-
-            batch_groups = []
-            batch_scores = []
-            batch_synthons = []
+            assert data["graph"][0].batch_size == 1
 
             ground_truth = []
             input_products = []
 
             r_mols = data["graph"][0].to_molecule()
             p_mols = data["graph"][1].to_molecule()
+            
             for r_mol, p_mol in zip(r_mols, p_mols):
                 simple_rmol = build_simple_molecule(r_mol)
                 simple_pmol = build_simple_molecule(p_mol)
@@ -167,109 +157,71 @@ class SynthonRetrosynthesis(Problem):
             grouped_synthon_smis = self.group_predicted_synthon_smiles(
                 result["synthon"].to_smiles(), result["num_synthon"]
             )
-            topk_grouped_synthons = self.regroup_synthons_topk(
-                grouped_synthon_smis, self.synthon_topk
+
+            # for some edge cases, model the same reaction center twice (one unique) which requires manual duplication
+            if len(grouped_synthon_smis) < 2:
+                grouped_synthon_smis.append(grouped_synthon_smis[0])
+            
+            synthons_smi_list = []
+
+            for n, synthon_smi in enumerate(grouped_synthon_smis):
+                synthons_smi_list.extend([synthon_smi] * self.samples_per_synthon[n])
+            
+            if self.product_context:
+                synthons_batch = self.create_synthon_graphs_with_products(
+                    synthons_smi_list, data["graph"][1].to_molecule() * examples_per_sample
+                )
+            else:
+                synthons_batch = self.create_synthon_graphs(synthons_smi_list)
+            synthons_batch = synthons_batch.to(config.get_device())
+
+            synthon, node_mask = to_dense(
+                synthons_batch.x,
+                synthons_batch.edge_index,
+                synthons_batch.edge_attr,
+                synthons_batch.batch,
             )
-            i_samples = 0
-            for n, synthons_smi_list in enumerate(topk_grouped_synthons):
-                if self.product_context:
-                    synthons_batch = self.create_synthon_graphs_with_products(
-                        synthons_smi_list, data["graph"][1].to_molecule()
-                    )
-                else:
-                    synthons_batch = self.create_synthon_graphs(synthons_smi_list)
-                synthons_batch = synthons_batch.to(config.get_device())
-
-                synthon, node_mask = to_dense(
-                    synthons_batch.x,
-                    synthons_batch.edge_index,
-                    synthons_batch.edge_attr,
+            synthon = synthon.mask(node_mask)
+            
+            predicted_synthon_smis = get_molecule_smi_list(
+                synthon.X, 
+                synthon.E, 
+                node_mask, 
+                self.info.atom_decoder, 
+                onehot=True
+            )
+            
+            if self.product_context:
+                products, p_node_mask = to_dense(
+                    synthons_batch.p_x,
+                    synthons_batch.p_edge_index,
+                    synthons_batch.p_edge_attr,
                     synthons_batch.batch,
                 )
-                synthon = synthon.mask(node_mask)
+                products = products.mask(p_node_mask)
 
-                predicted_synthon_graphs = predicted_reactants_molecule_graph(
-                    torch.argmax(synthon.X, dim=-1),
-                    torch.argmax(synthon.E, dim=-1),
-                    synthons_batch.batch,
-                    len(synthon.X),
-                )
+            assert len(synthon.X) == examples_per_sample
+            context = [synthon.clone(), products.clone()] if self.product_context else synthon.clone()
+            
+            X, E = self.method.sample(
+                initial_graph=synthon,
+                node_mask=node_mask,
+                context=context,
+                predictor=self.model_wrapper,
+            )
+            
+            pred_reactants_smis = get_molecule_smi_list(X, E, node_mask, self.info.atom_decoder)
 
-                batch_synthon = []
-                for s_graph in predicted_synthon_graphs:
-                    mol = build_molecule(s_graph[0], s_graph[1], self.info.atom_decoder)
-                    smi = Chem.MolToSmiles(mol, canonical=True)
-                    batch_synthon.append(smi)
+            scores = [0] * len(pred_reactants_smis)
+        
+            true_reactant_smiles.append(ground_truth[0])
+            product_molecules_smiles.append(input_products[0])
 
-                if self.product_context:
-                    products, p_node_mask = to_dense(
-                        synthons_batch.p_x,
-                        synthons_batch.p_edge_index,
-                        synthons_batch.p_edge_attr,
-                        synthons_batch.batch,
-                    )
-                    products = products.mask(p_node_mask)
+            synthon_molecule_smiles.append(predicted_synthon_smis)
+            pred_reactant_smiles.append(pred_reactants_smis)
+            computed_scores.append(scores)
+            num_samples += 1
 
-                synthon_bs = len(synthon.X)
-                assert synthon_bs == bs
-
-                if self.product_context:
-                    context = [synthon.clone(), products.clone()]
-                else:
-                    context = synthon.clone()
-                num_to_sample = (
-                    self.samples_per_synthon[n]
-                    if self.samples_per_synthon
-                    else per_synthon_ex_per_sample
-                )
-                for j in range(num_to_sample):
-                    config.get_logger().info(
-                        f"Sampling reactant {i_samples + 1} out of {examples_per_sample} for each molecule in batch."
-                    )
-
-                    X, E = self.method.sample(
-                        initial_graph=synthon,
-                        node_mask=node_mask,
-                        context=context,
-                        predictor=self.model_wrapper,
-                    )
-
-                    pred_reactants_batch_list = predicted_reactants_molecule_graph(
-                        X, E, synthons_batch.batch, bs
-                    )
-                    pred_reactant_smis = self.convert_reactant_graphs_to_smile(
-                        pred_reactants_batch_list
-                    )
-                    scores = [0] * len(pred_reactant_smis)
-
-                    batch_groups.append(pred_reactant_smis)
-                    batch_scores.append(scores)
-                    batch_synthons.append(batch_synthon)
-                    i_samples += 1
-
-            # for loop to do transpose, batch size length array each entry is another array
-            # with samples per product entries
-            for mol_idx_in_batch in range(bs):
-                mol_samples_group = []
-                mol_scores_group = []
-                mol_synthons_group = []
-
-                for batch_group, scores_group, batch_synthon in zip(
-                    batch_groups, batch_scores, batch_synthons
-                ):
-                    mol_samples_group.append(batch_group[mol_idx_in_batch])
-                    mol_scores_group.append(scores_group[mol_idx_in_batch])
-                    mol_synthons_group.append(batch_synthon[mol_idx_in_batch])
-
-                pred_reactant_smiles.append(mol_samples_group)
-                computed_scores.append(mol_scores_group)
-                synthon_molecule_smiles.append(mol_synthons_group)
-
-                true_reactant_smiles.append(ground_truth[mol_idx_in_batch])
-                product_molecules_smiles.append(input_products[mol_idx_in_batch])
-
-            num_samples += bs
- 
         sampled_data = {
             "reactants": true_reactant_smiles,
             "products": product_molecules_smiles,
@@ -289,14 +241,6 @@ class SynthonRetrosynthesis(Problem):
             grouped_synthon_smi_list.append(full_synthons_smi)
             curr_id += num_synthons
         return grouped_synthon_smi_list
-
-    def regroup_synthons_topk(self, grouped_synthon_smi_list, k):
-        topk_groups = []
-        final_range = int(len(grouped_synthon_smi_list) / k)
-        for i in range(k):
-            idx = [k * j + i for j in range(final_range)]
-            topk_groups.append([grouped_synthon_smi_list[n] for n in idx])
-        return topk_groups
 
     def create_synthon_graphs_with_products(self, synthon_smi_list, product_mol_list):
         data_list = []

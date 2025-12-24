@@ -11,7 +11,7 @@ from torch import distributed as dist
 from tqdm import tqdm
 
 from retflow import config
-from retflow.utils.data import get_forward_model, smi_tokenizer
+from retflow.utils.forward_model import get_forward_model, smi_tokenizer
 
 
 def process_data_compute_metrics(

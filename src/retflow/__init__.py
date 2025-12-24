@@ -7,4 +7,4 @@ from retflow.models import GraphTransformer
 from retflow.optimizers import ADAMW
 from retflow.problems import (Retrosynthesis, SynthonCompletion,
                               SynthonRetrosynthesis)
-from retflow.runner.distributed_helper import DistributedHelper
+from retflow.utils.distributed_helper import DistributedHelper

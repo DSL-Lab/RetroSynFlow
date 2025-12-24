@@ -8,7 +8,7 @@ from retflow.datasets import Dataset
 from retflow.methods import Method
 from retflow.models import Model
 from retflow.optimizers import Optimizer
-from retflow.runner.distributed_helper import DistributedHelper
+from retflow.utils.distributed_helper import DistributedHelper
 
 
 @dataclass
