@@ -170,6 +170,8 @@ python discrete_fm/synthon/synthon_product_retro_eval.py --local
 
 All other experiment files with ablations are located in the `retflow/src/exps/` folder. 
 
+Note: The experiment files use different number of epochs for training than reported in the paper. They are the most recent. 
+
 
 ## Citation
 
