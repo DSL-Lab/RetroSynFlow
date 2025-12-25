@@ -10,7 +10,7 @@ method = GraphDiscreteFM()
 experiment = Experiment(
     problem=SynthonCompletion(model, dataset, method, use_product_context=True),
     optim=ADAMW,
-    epochs=800,
+    epochs=500,
     sample_epoch=100,
     num_samples=128,
     examples_per_sample=5,
